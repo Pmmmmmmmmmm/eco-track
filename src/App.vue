@@ -5,8 +5,4 @@ import { RouterView } from 'vue-router'
 <template>
   <RouterView class="app" />
 </template>
-<style>
-.app {
-  font-family: 'MyFont';
-}
-</style>
+<style></style>

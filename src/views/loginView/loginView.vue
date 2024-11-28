@@ -1,20 +1,17 @@
 <script setup lang="ts">
 import { ref, reactive, toRefs, onBeforeMount, onMounted, h, compile } from 'vue'
+
 onBeforeMount(() => { })
-onMounted(() => { })
-console.log(h('div', {
-  onClick: () => {
-    console.log(123);
-  }
-}));
+let refEl = ref(null)
+onMounted(() => {
+
+})
 
 
-
-let a = ref(10)
-console.log(a);
 let loginType = ''
 </script>
 <template>
+  <childComponents ref="refEl" />
   <div class="login-view">
     <!-- <div class="type-select">
       <div class="btn" @click="loginType = 'online'">online</div>

@@ -20,6 +20,7 @@ function handleNav(target: string) {
       <div class="btn" @click="handleNav('add')">add</div>
       <div class="btn" @click="handleNav('detail')">detail</div>
       <div class="btn" @click="handleNav('trend')">trend</div>
+      <div class="btn" @click="handleNav('tagManage')">tagManage</div>
     </div>
   </div>
 

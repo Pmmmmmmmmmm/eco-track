@@ -1,19 +1,26 @@
 <script setup lang="ts">
-import { ref, reactive, toRefs, onBeforeMount, onMounted, inject } from 'vue'
+import { ref, reactive, toRefs, onBeforeMount, onMounted, inject, computed } from 'vue'
 import { showLoadingToast, closeToast, showSuccessToast, showFailToast } from 'vant';
+import { DatePicker, Calendar, Popup } from 'vant';
+import { log } from 'console';
+
 let IDB: any = inject('idbWrapper')
 // 定义输入项接口
-// interface InputItem {
-//   label: string;  // 标签，始终为字符串
-//   val: string | number;  // val 可以是字符串、数字或日期
-// }
-const inputItem = ref({
-  // category: [],
+interface InputItem {
+  date: string | string[];  // val 可以是字符串、数字或日期,
+  category: string,
+  amount: number,
+  detail: string
+
+}
+const inputItem = ref<InputItem>({
   category: '',
   amount: 0,
-  date: 0,
+  date: '',
   detail: ''
 })
+
+let IsShowDatePickerPop = ref(false)
 let handleRecordSubmit = async () => {
   const { category, amount, date, detail } = inputItem.value
   let result = {
@@ -40,7 +47,7 @@ let handleRecordSubmit = async () => {
       // category: [],
       category: '',
       amount: 0,
-      date: 0,
+      date: [],
       detail: ''
     }
   } else {
@@ -48,10 +55,55 @@ let handleRecordSubmit = async () => {
   }
 
 }
-let isNum = (val: number | string) => {
-  return typeof val === 'number'
+let initialDate = [new Date().getFullYear() + '', new Date().getMonth() + 1 + '', new Date().getDate() + '']
+let handleDateConfirm = (val: string[]) => {
+  inputItem.value.date = val
+  IsShowDatePickerPop.value = false
+  initialDate = val
+
 }
-onBeforeMount(() => { })
+let getFormatDate = computed(() => {
+  let DateVal = inputItem.value.date
+  if (!Array.isArray(DateVal)) {
+    return ''
+  } else {
+    return DateVal.findIndex(item => item == '') === -1 ?
+      `${DateVal[0]}/${DateVal[1]}/${DateVal[2]}` : '';
+  }
+
+})
+
+let getDateTag = computed(() => {
+  if (Array.isArray(inputItem.value.date)) {
+    let inputDate = new Date(inputItem.value.date.join('-') + ' 23:59:59')
+    let now = new Date()
+    let currentDate = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    )
+
+    console.log(inputDate, currentDate);
+
+    // const millisecondsPerDay = 24 * 60 * 60 * 1000;
+    // console.log(Math.floor((currentDate.getTime() - inputDate.getTime()) / millisecondsPerDay));
+
+
+
+  }
+  // if (Array.isArray(inputItem.value.date)) {
+  //   let inputDate = new Date(inputItem.value.date.map(Number))
+
+  // }
+
+  // let DateVal = new Date(...inputItem.value.date)
+  // console.log(DateVal);
+
+
+  return 'today'
+  // let
+
+})
 onMounted(() => { })
 </script>
 <template>
@@ -64,7 +116,9 @@ onMounted(() => { })
       </div>
       <div class="add-item">
         <div class="add-item__title">date:</div>
-        <input class="add-item__input" placeholder="-" type="number" v-model="inputItem.date">
+        <div class="add-item__input" @click="IsShowDatePickerPop = true">
+          {{ getFormatDate || '-' }} <div v-if="getFormatDate" class="date-tag">{{ getDateTag }}</div>
+        </div>
       </div>
       <div class="add-item">
         <div class="add-item__title">detail:</div>
@@ -74,9 +128,15 @@ onMounted(() => { })
         <div class="add-item__title">category:</div>
         <input class="add-item__input" placeholder="-" type="text" v-model="inputItem.category">
       </div>
-
     </div>
     <div class="submit-btn" @click="handleRecordSubmit">add!</div>
+
+    <popup v-model:show="IsShowDatePickerPop" round position="bottom">
+      <date-picker title="选择日期" v-model="initialDate" @confirm="(val) => handleDateConfirm(val.selectedValues)"
+        :max-date="new Date()" />
+    </popup>
+
+    <!-- <calendar v-model:show="isCalendarShow" @confirm="handleDateConfirm" /> -->
   </div>
 
 </template>
@@ -87,7 +147,7 @@ onMounted(() => { })
 
   .title {
     .title();
-    font-size: 10rem;
+    font-size: 100rem;
   }
 
   .add {
@@ -103,11 +163,13 @@ onMounted(() => { })
 
       .add-item__input {
         font-size: 40rem;
-        font-family: 'MyFont';
         background: none;
         border: none;
         outline: none;
-        border-bottom: 1px solid #000
+        border-bottom: 1px solid #000;
+        display: flex;
+        align-items: center;
+
       }
     }
   }

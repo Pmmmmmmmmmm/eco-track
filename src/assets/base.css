@@ -52,7 +52,7 @@
 
 @font-face {
   font-family: 'MyFont';
-  src: url('../../public/SmileySans-Oblique.otf.woff2') format('woff2');
+  src: url('SmileySans-Oblique.otf.woff2') format('woff2');
   font-weight: normal;
   font-style: normal;
 
@@ -70,10 +70,11 @@ body {
   min-height: 100vh;
   /* color: var(--color-text);
   background: var(--color-background); */
-
   /* 抗锯齿 */
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: rgb(255, 251, 226);
+  font-family: 'MyFont', sans-serif;
+
 }
