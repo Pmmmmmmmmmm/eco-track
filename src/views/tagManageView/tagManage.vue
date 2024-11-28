@@ -1,29 +1,26 @@
-<script setup lang='ts'>
-import { log } from 'console';
+<script setup lang="ts">
+import { log } from 'console'
 import { ref, reactive, toRefs, onBeforeMount, onMounted } from 'vue'
-onBeforeMount(() => { })
-onMounted(() => { })
+onBeforeMount(() => {})
+onMounted(() => {})
 type Tag = {
-  name: string,
+  name: string
   color: string
 }
 let tagList = ref<Tag[]>([])
 
 let handleTagDel = (index: number) => {
-  console.log(index);
-
+  console.log(index)
 }
 let handleTagChange = (index: number) => {
-  console.log(index);
-
+  console.log(index)
 }
 let handleAddClick = () => {
   tagList.value.push({
-    name: 'a', color: ''
+    name: 'a',
+    color: ''
   })
 }
-
-
 </script>
 <template>
   <div class="tag">
@@ -38,20 +35,18 @@ let handleAddClick = () => {
           <div class="name">{{ item.name }}</div>
           <div class="color">{{ item.color || '-' }}</div>
           <div class="options">
-            <div class="btn" @click="handleTagChange(index)">改</div>/
+            <div class="btn" @click="handleTagChange(index)">改</div>
+            /
             <div class="btn" @click="handleTagDel(index)">删</div>
           </div>
         </div>
       </div>
       <div class="empty-tip" v-if="tagList.length == 0">---Empty---</div>
     </div>
-    <div class="tag-add" @click="handleAddClick">
-      ADD
-    </div>
+    <div class="tag-add" @click="handleAddClick">ADD</div>
   </div>
-
 </template>
-<style lang='less' scoped>
+<style lang="less" scoped>
 .tag-table {
   height: calc(100vh - 100rem);
   margin: 20rem;
@@ -60,13 +55,12 @@ let handleAddClick = () => {
   display: flex;
   flex-direction: column;
 
-
   .table-head {
     flex-shrink: 0;
     display: flex;
     border-bottom: 6rem dotted #000000;
 
-    &>div {
+    & > div {
       line-height: 100rem;
       width: 33.3%;
       text-align: center;
@@ -84,14 +78,13 @@ let handleAddClick = () => {
       border-bottom: 6rem dotted #000000;
       display: flex;
 
-      &>div {
+      & > div {
         height: 100rem;
         line-height: 100rem;
         width: 33.3%;
         display: flex;
         align-items: center;
         justify-content: center;
-
       }
     }
   }
@@ -101,7 +94,7 @@ let handleAddClick = () => {
     width: 100%;
     text-align: center;
     margin: 30rem 0;
-    color: #b0b0b0
+    color: #b0b0b0;
   }
 }
 

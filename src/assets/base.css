@@ -55,7 +55,6 @@
   src: url('SmileySans-Oblique.otf.woff2') format('woff2');
   font-weight: normal;
   font-style: normal;
-
 }
 
 *,
@@ -76,5 +75,4 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: rgb(255, 251, 226);
   font-family: 'MyFont', sans-serif;
-
 }

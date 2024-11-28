@@ -20,10 +20,9 @@ getBillsData()
     <div class="title">DETAIL</div>
     <div class="filter-bar">
       <div class="name">filter</div>
-
     </div>
     <div class="bills-list">
-      <div class="bills-item" v-for="(item) in billsData" :key="item.id">
+      <div class="bills-item" v-for="item in billsData" :key="item.id">
         <div class="amount">
           <div class="label">amount:</div>
           <div class="value">{{ item.amount }}</div>
@@ -66,7 +65,7 @@ getBillsData()
       flex-direction: column;
       box-shadow: 7rem 7rem 0rem 0px #844848;
 
-      &>div {
+      & > div {
         width: 100%;
         display: flex;
         justify-content: space-between;
@@ -77,12 +76,10 @@ getBillsData()
         }
 
         .label {
-          font-size: 36rem
+          font-size: 36rem;
         }
       }
     }
   }
-
-
 }
 </style>

@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { ref, reactive, toRefs, onBeforeMount, onMounted } from 'vue'
-import { useRouter, type RouteLocationRaw } from 'vue-router';
+import { useRouter, type RouteLocationRaw } from 'vue-router'
 
-const router = useRouter();
-onBeforeMount(() => { })
-onMounted(() => { })
+const router = useRouter()
+onBeforeMount(() => {})
+onMounted(() => {})
 function handleNav(target: string) {
-  router.push('/' + target);
-
-} 
+  router.push('/' + target)
+}
 </script>
 <template>
   <div class="home-view">
@@ -23,7 +22,6 @@ function handleNav(target: string) {
       <div class="btn" @click="handleNav('tagManage')">tagManage</div>
     </div>
   </div>
-
 </template>
 <style lang="less" scoped>
 .home-view {
@@ -31,7 +29,7 @@ function handleNav(target: string) {
   min-height: 100vh;
 
   .title {
-    .title()
+    .title();
   }
 
   .nav {
@@ -42,7 +40,6 @@ function handleNav(target: string) {
       .btn();
 
       margin: 0 20rem 0 0;
-
 
       &:last-child {
         margin: 0 0 0 0;

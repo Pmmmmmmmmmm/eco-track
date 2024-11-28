@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import { ref, reactive, toRefs, onBeforeMount, onMounted, h, compile } from 'vue'
 
-onBeforeMount(() => { })
+onBeforeMount(() => {})
 let refEl = ref(null)
-onMounted(() => {
-
-})
-
+onMounted(() => {})
 
 let loginType = ''
 </script>
@@ -35,7 +32,7 @@ let loginType = ''
     user-select: none;
     font-size: 100rem;
 
-    &>*:not(:last-child) {
+    & > *:not(:last-child) {
       margin: 0 0 40rem 0;
     }
 
