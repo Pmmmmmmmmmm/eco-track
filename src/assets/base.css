@@ -67,12 +67,12 @@
 
 body {
   min-height: 100vh;
-  /* color: var(--color-text);
-  background: var(--color-background); */
+  color: var(--color-text);
+  background: var(--color-background);
   /* 抗锯齿 */
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: rgb(255, 251, 226);
+  background-color: #282c34;
   font-family: 'MyFont', sans-serif;
 }

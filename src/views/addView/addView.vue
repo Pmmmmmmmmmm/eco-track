@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { ref, reactive, toRefs, onBeforeMount, onMounted, inject, computed } from 'vue'
 import { showLoadingToast, closeToast, showSuccessToast, showFailToast } from 'vant'
-import { DatePicker, Calendar, Popup } from 'vant'
-import { log } from 'console'
+import { DatePicker, Popup } from 'vant'
 
-let IDB: any = inject('idbWrapper')
 // 定义输入项接口
 interface InputItem {
   date: string | string[] // val 可以是字符串、数字或日期,
@@ -26,31 +24,7 @@ let handleRecordSubmit = async () => {
     amount,
     date,
     detail,
-    // category: category.join(',')
     category
-  }
-  const toast = showLoadingToast({
-    duration: 0,
-    forbidClick: true,
-    message: '添加中'
-  })
-  let res = await IDB.add(result)
-  if (!result.amount || !result.date || !result.category) {
-    showFailToast('请检查数据')
-    return
-  }
-  if (res.success) {
-    toast.close()
-    showSuccessToast('添加成功')
-    inputItem.value = {
-      // category: [],
-      category: '',
-      amount: 0,
-      date: [],
-      detail: ''
-    }
-  } else {
-    showFailToast('添加失败')
   }
 }
 let initialDate = [
@@ -81,20 +55,9 @@ let getDateTag = computed(() => {
     let currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
 
     console.log(inputDate, currentDate)
-
-    // const millisecondsPerDay = 24 * 60 * 60 * 1000;
-    // console.log(Math.floor((currentDate.getTime() - inputDate.getTime()) / millisecondsPerDay));
   }
-  // if (Array.isArray(inputItem.value.date)) {
-  //   let inputDate = new Date(inputItem.value.date.map(Number))
-
-  // }
-
-  // let DateVal = new Date(...inputItem.value.date)
-  // console.log(DateVal);
 
   return 'today'
-  // let
 })
 onMounted(() => {})
 </script>
@@ -136,41 +99,4 @@ onMounted(() => {})
     <!-- <calendar v-model:show="isCalendarShow" @confirm="handleDateConfirm" /> -->
   </div>
 </template>
-<style lang="less" scoped>
-.addView {
-  padding: 30rem;
-  min-height: 100vh;
-
-  .title {
-    .title();
-    font-size: 100rem;
-  }
-
-  .add {
-    margin: 40rem 0;
-
-    .add-item {
-      font-size: 40rem;
-      user-select: none;
-
-      .add-item__title {
-        margin: 25rem 0 20rem 0;
-      }
-
-      .add-item__input {
-        font-size: 40rem;
-        background: none;
-        border: none;
-        outline: none;
-        border-bottom: 1px solid #000;
-        display: flex;
-        align-items: center;
-      }
-    }
-  }
-
-  .submit-btn {
-    .btn();
-  }
-}
-</style>
+<style lang="less" scoped></style>

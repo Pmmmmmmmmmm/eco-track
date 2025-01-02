@@ -43,43 +43,4 @@ getBillsData()
     </div>
   </div>
 </template>
-<style lang="less" scoped>
-.detailView {
-  padding: 30rem;
-  min-height: 100vh;
-
-  .title {
-    .title();
-  }
-
-  .bills-list {
-    display: flex;
-    flex-direction: column;
-
-    .bills-item {
-      margin: 20rem 0;
-      padding: 30rem;
-      background-color: #eed6a5;
-      display: flex;
-      align-items: center;
-      flex-direction: column;
-      box-shadow: 7rem 7rem 0rem 0px #844848;
-
-      & > div {
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-
-        &:not(:last-child) {
-          margin: 0 0 16rem 0;
-        }
-
-        .label {
-          font-size: 36rem;
-        }
-      }
-    }
-  }
-}
-</style>
+<style lang="less" scoped></style>

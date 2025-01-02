@@ -18,28 +18,4 @@ let loginType = ''
   </div>
 </template>
 
-<style lang="less" scoped>
-.login-view {
-  display: flex;
-  padding: 40rem;
-  height: 100vh;
-
-  .type-select {
-    margin: auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    user-select: none;
-    font-size: 100rem;
-
-    & > *:not(:last-child) {
-      margin: 0 0 40rem 0;
-    }
-
-    .btn {
-      .btn();
-      font-size: 100rem;
-    }
-  }
-}
-</style>
+<style lang="less" scoped></style>

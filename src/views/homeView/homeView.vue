@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, reactive, toRefs, onBeforeMount, onMounted } from 'vue'
-import { useRouter, type RouteLocationRaw } from 'vue-router'
+import { ref, reactive, onBeforeMount, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
 const router = useRouter()
 onBeforeMount(() => {})
@@ -11,12 +11,10 @@ function handleNav(target: string) {
 </script>
 <template>
   <div class="home-view">
-    <div class="title">
-      <!-- ECO-TRACK -->
-      AAA
-    </div>
+    <div class="title">ECO-TRACK</div>
     <div class="nav">
       <div class="btn" @click="handleNav('add')">add</div>
+
       <div class="btn" @click="handleNav('detail')">detail</div>
       <div class="btn" @click="handleNav('trend')">trend</div>
       <div class="btn" @click="handleNav('tagManage')">tagManage</div>
@@ -25,24 +23,24 @@ function handleNav(target: string) {
 </template>
 <style lang="less" scoped>
 .home-view {
-  padding: 30rem;
-  min-height: 100vh;
-
+  padding: 20px;
   .title {
-    .title();
+    font-size: 30px;
+    text-align: center;
+    margin-bottom: 20px;
   }
-
   .nav {
     display: flex;
-    margin: 30rem 0 0 0;
-
+    justify-content: space-around;
     .btn {
-      .btn();
-
-      margin: 0 20rem 0 0;
-
-      &:last-child {
-        margin: 0 0 0 0;
+      cursor: pointer;
+      padding: 10px;
+      border: 1px solid #fff;
+      border-radius: 5px;
+      transition: all 0.3s;
+      &:hover {
+        background-color: #fff;
+        color: #000;
       }
     }
   }
