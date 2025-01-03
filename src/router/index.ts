@@ -47,6 +47,12 @@ const router = createRouter({
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
       component: () => import('../views/tagManageView/tagManage.vue')
+    },
+    {
+      
+      path: '/MyCalendar',
+      name: 'MyCalendar',
+      component: () => import('../views/myCalendarView/myCalendarView.vue')
     }
   ]
 })

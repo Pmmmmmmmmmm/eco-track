@@ -11,13 +11,14 @@ function handleNav(target: string) {
 </script>
 <template>
   <div class="home-view">
-    <div class="title">ECO-TRACK</div>
+    <div class="title">TRACK</div>
     <div class="nav">
       <div class="btn" @click="handleNav('add')">add</div>
 
       <div class="btn" @click="handleNav('detail')">detail</div>
       <div class="btn" @click="handleNav('trend')">trend</div>
       <div class="btn" @click="handleNav('tagManage')">tagManage</div>
+      <div class="btn" @click="handleNav('MyCalendar')">MyCalendar</div>
     </div>
   </div>
 </template>
