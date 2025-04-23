@@ -1,17 +1,15 @@
 <script setup lang="ts">
 import { ref, reactive, toRefs, onBeforeMount, onMounted, inject } from 'vue'
-let IDB: any = inject('idbWrapper')
-interface billsItem {
-  amount: number
-  date: number
-  detail: string
-  category: string
-  id: number
-}
-let billsData = ref<billsItem[]>([])
+import { getOrderList } from '@/api/order/order'
+import type { OrderDto } from '@/types/order'
+
+let billsData = ref<OrderDto[]>([])
 let getBillsData = async () => {
-  let res = await IDB.openCursor()
-  billsData.value = res
+  let res = await getOrderList({
+    page: 1,
+    pageSize: 10
+  })
+  billsData.value = res.data.list
 }
 getBillsData()
 </script>
@@ -23,21 +21,17 @@ getBillsData()
     </div>
     <div class="bills-list">
       <div class="bills-item" v-for="item in billsData" :key="item.id">
-        <div class="amount">
+        <div>
+          <div class="label">transactionTime:</div>
+          <div class="value">{{ item.transactionTime }}</div>
+        </div>
+        <div>
           <div class="label">amount:</div>
           <div class="value">{{ item.amount }}</div>
         </div>
-        <div class="detail">
-          <div class="label">detail:</div>
-          <div class="value">{{ item.detail }}</div>
-        </div>
-        <div class="date">
-          <div class="label">date:</div>
-          <div class="value">{{ item.date }}</div>
-        </div>
-        <div class="category">
-          <div class="label">category:</div>
-          <div class="value">{{ item.category }}</div>
+        <div>
+          <div class="label">commodity:</div>
+          <div class="value">{{ item.commodity }}</div>
         </div>
       </div>
     </div>

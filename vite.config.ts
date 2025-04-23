@@ -13,6 +13,24 @@ export default defineConfig({
     // vueJsx(),
     // VueDevTools(),
   ],
+  server: {
+    // 代理配置
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    },
+    // 端口号
+    port: 8080,
+    // 是否自动打开浏览器
+    open: true,
+    // 是否开启 https
+    // https: false,
+    // 是否启用热更新
+    hmr: true,
+  },
   css: {
     // 预处理器配置项
     preprocessorOptions: {
