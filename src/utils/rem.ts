@@ -2,7 +2,7 @@
   const doc = document,
     docEl = doc.documentElement,
     remStyle = document.createElement('style')
-  let tid: NodeJS.Timeout
+  let tid:number
 
   function refreshRem() {
     const width = docEl.clientWidth

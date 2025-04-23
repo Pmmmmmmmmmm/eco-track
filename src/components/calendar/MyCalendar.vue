@@ -1,22 +1,24 @@
 <template>
-  <div class="calendar">
-    <CalendarBody />
-    <CalendarHeader />
-  </div>
+  <Teleport to="body">
+    <div class="calendar">
+      <CalendarBody />
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import CalendarBody from './components/calendar-body.vue'
-import CalendarHeader from './components/calendar-header.vue'
 </script>
 
 <style scoped lang="less">
 .calendar {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
   color: #000;
   display: flex;
-  flex-direction: column;
-  width: 300px;
   border: 1px solid #ccc;
   border-radius: 5px;
   overflow: hidden;

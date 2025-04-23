@@ -75,4 +75,5 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: #282c34;
   font-family: 'MyFont', sans-serif;
+  overscroll-behavior: none;
 }

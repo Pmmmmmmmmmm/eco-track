@@ -57,7 +57,6 @@ let initCurrentTable = function (currentDate: number[]) {
       )
     )
   }
-  console.log(result)
 
   return result
 }
@@ -98,7 +97,7 @@ const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
     text-align: center;
     &:nth-child(7n),
     &:nth-child(7n-1) {
-      color: rgb(238, 118, 118);
+      color: #e33131;
     }
   }
 }
@@ -112,7 +111,7 @@ const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
     box-sizing: border-box;
     &:nth-child(7n),
     &:nth-child(7n-1) {
-      color: rgb(238, 118, 118);
+      color: #e33131;
     }
   }
 }
