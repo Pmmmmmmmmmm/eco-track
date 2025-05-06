@@ -1,14 +1,23 @@
 {
-  "files": [],
-  "references": [
-    {
-      "path": "./tsconfig.node.json"
-    },
-    {
-      "path": "./tsconfig.app.json"
-    },
-    {
-      "path": "./tsconfig.vitest.json"
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  //👆这里继承了 @vue/tsconfig/tsconfig.dom.json 配置文件。这个文件通常是 Vue 官方提供的 TypeScript 配置文件，包含了适合 Vue 项目的默认编译选项，特别是针对浏览器环境（DOM）的配置。
+  "include": ["env.d.ts", "src/**/*", "src/**/*.vue"],
+  //👆指定要包含在编译中的文件
+  "compilerOptions": {
+    //👆 定义 TypeScript 编译器的选项
+    "target": "es2021",
+    //👆编译后的代码将兼容 ES2021 版本的 JavaScript
+    "module": "ESNext",
+    //👆使用 ESNext 模块系统，这通常是 ES 模块（import 和 export）的最新版本。
+    "lib": ["dom", "es2021"],
+    //👆指定需要包含的类型库
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    //👆 启用增量编译，TypeScript 会将编译信息存储在这个文件中，以加快后续编译速度。
+    "baseUrl": ".",
+    //👆 baseUrl 设置为当前目录（.），表示模块解析将从项目根目录开始。
+    "paths": {
+      "@/*": ["./src/*"]
     }
-  ]
+    //👆 配置路径别名。
+  }
 }

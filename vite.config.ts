@@ -9,9 +9,9 @@ import path from 'node:path'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    vue()
+    vue(),
     // vueJsx(),
-    // VueDevTools(),
+    VueDevTools()
   ],
   server: {
     // 代理配置
@@ -29,7 +29,7 @@ export default defineConfig({
     // 是否开启 https
     // https: false,
     // 是否启用热更新
-    hmr: true,
+    hmr: true
   },
   css: {
     // 预处理器配置项
@@ -39,11 +39,10 @@ export default defineConfig({
         javascriptEnabled: true,
         // 意义不明，但是有用
         modifyVars: {
-          hack: `true; @import (reference) "${path.resolve('src/assets/customer.less')}";`,
-        },
+          hack: `true; @import (reference) "${path.resolve('src/assets/customer.less')}";`
+        }
         // 在每个less文件头部加上这一段
         // additionalData: `@import "${path.resolve(__dirname, 'src/assets/customer.less')}";`
-
       }
     },
     postcss: { plugins: [postcssPresetEnv()] }

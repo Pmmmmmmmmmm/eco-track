@@ -1,7 +1,7 @@
 <template>
   <Teleport to="body">
     <div class="calendar">
-      <CalendarBody />
+      <CalendarBody :model-value="props.modelValue" @update:model-value="updateModelValue" />
     </div>
   </Teleport>
 </template>
@@ -9,6 +9,18 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import CalendarBody from './components/calendar-body.vue'
+
+const props = defineProps({
+  modelValue: {
+    type: String,
+    default: ''
+  }
+})
+const emit = defineEmits(['update:modelValue'])
+
+function updateModelValue(value: string) {
+  emit('update:modelValue', value)
+}
 </script>
 
 <style scoped lang="less">
