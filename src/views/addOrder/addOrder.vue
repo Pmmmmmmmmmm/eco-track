@@ -3,6 +3,7 @@ import { ref, reactive, toRefs, onBeforeMount, onMounted } from 'vue'
 import { addOrder } from '@/api/order/order'
 import type { addOrderDto } from '@/types/order'
 import MyCalendar from '@/components/calendar/MyCalendar.vue'
+import PopUp from '@/components/PopUp/PopUp.vue'
 onBeforeMount(() => {})
 onMounted(() => {})
 let commodity = ref('')
@@ -16,35 +17,37 @@ const handleSubmit = async () => {
     transactionTime: transactionTime.value
   })
 }
-const showCalendar = () => {
-  const calendar = document.querySelector('.calendar')
-  if (calendar) {
-    calendar.classList.toggle('show')
-  }
-}
 let selectedDate = ref('')
+let visible = ref<boolean>(true)
 </script>
 <template>
-  <div class="add-form">
-    {{ selectedDate }}
-    <div class="form-item">
-      <div class="label">商品：</div>
-      <input type="text" v-model="commodity" />
-    </div>
-    <div class="form-item">
-      <div class="label">金额：</div>
-      <input type="number" v-model="amount" />
-    </div>
-    <div class="form-item">
-      <div class="label">交易时间：</div>
-      <div class="time-input">
-        <div class="btn">此刻</div>
-        <div class="btn">昨天</div>
-        <div class="btn" @click="showCalendar">更多</div>
-        <MyCalendar v-model="selectedDate" />
+  <div class="add-order">
+    <PopUp v-model:visible="visible" location="bottom">
+      <MyCalendar v-model:date="selectedDate" />
+    </PopUp>
+    <div class="add-form">
+      <div class="form-item">
+        <div class="label">commodity：</div>
+        <input type="text" v-model="commodity" />
       </div>
+      <div class="form-item">
+        <div class="label">amount：</div>
+        <input type="number" v-model="amount" />
+      </div>
+      <div class="form-item">
+        <div class="label">DATE：</div>
+        <div class="time-input">
+          <div class="btn" @click="visible = true">SELECT DATE</div>
+        </div>
+      </div>
+      <div class="form-item">
+        <div class="label">TIME：</div>
+        <div class="time-input">
+          <div class="btn">SELECT TIME</div>
+        </div>
+      </div>
+      <div class="submit-btn" @click="handleSubmit">SUBMIT</div>
     </div>
-    <div class="submit-btn" @click="handleSubmit">提交</div>
   </div>
 </template>
 <style lang="less" scoped>
