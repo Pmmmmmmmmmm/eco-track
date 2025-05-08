@@ -1,38 +1,37 @@
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import Day from './components/day.vue'
+import YearAndMonth from './components/YearAndMonth.vue'
+const year = ref(new Date().getFullYear())
+const month = ref(new Date().getMonth() + 1)
+const day = ref(new Date().getDate())
+let currentView = ref<'calendar' | 'year&month'>('calendar')
+function handleViewChange() {
+  if (currentView.value === 'calendar') {
+    currentView.value = 'year&month'
+  } else {
+    currentView.value = 'calendar'
+  }
+}
+</script>
 <template>
   <div class="calendar">
     <div class="year-month">
       <div class="year">{{ year }}</div>
       <div class="month">{{ month }}</div>
+      <div class="day">{{ day }}</div>
     </div>
     <div class="calendar-header">
       <div class="ctrl-btn">cancel</div>
       <div class="ctrl-btn">confirm</div>
-      <div class="ctrl-btn">change</div>
+      <div class="ctrl-btn" @click="handleViewChange">change</div>
     </div>
-    <YearAndMonth v-model:year="year" v-model:month="month" />
-    <!-- <CalendarBody :model-value="props.modelValue" @update:model-value="updateModelValue" /> -->
+    <div class="calendar-body">
+      <YearAndMonth v-if="currentView === 'year&month'" v-model:year="year" v-model:month="month" />
+      <Day v-if="currentView === 'calendar'" />
+    </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref, computed } from 'vue'
-import CalendarBody from './components/CalendarBody.vue'
-import YearAndMonth from './components/YearAndMonth.vue'
-const year = ref(new Date().getFullYear())
-const month = ref(new Date().getMonth() + 1)
-
-const props = defineProps({
-  modelValue: {
-    type: String,
-    default: ''
-  }
-})
-const emit = defineEmits(['update:modelValue'])
-
-function updateModelValue(value: string) {
-  emit('update:modelValue', value)
-}
-</script>
 
 <style scoped lang="less">
 .calendar {
@@ -55,6 +54,11 @@ function updateModelValue(value: string) {
       margin: 10px;
       cursor: pointer;
     }
+  }
+
+  .calendar-body {
+    width: 100vw;
+    height: 60vw;
   }
 }
 </style>

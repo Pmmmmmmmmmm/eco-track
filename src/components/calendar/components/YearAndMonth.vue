@@ -1,46 +1,24 @@
 <script setup lang="ts">
 import { ref, reactive, toRefs, onBeforeMount, onMounted, handleError, watchEffect } from 'vue'
-//年份范围
-const YEARS_NUMBER = 3
-const IGNORE_DIS = 40
-const dateRef = ref<HTMLElement | HTMLElement[] | null>(null)
-const scrollTableRef = ref<HTMLElement | null>(null)
-const scrollBoxRef = ref<HTMLElement | null>(null)
-const locationMap = new Map()
-const XSet = new Set<number>()
-const YSet = new Set<number>()
-let touchState = ref<'touching' | 'end'>('end')
-let scrollState = ref<'scrolling' | 'end'>('end')
+import { useDomState } from './getDomState'
 
-let widthPadding = 0
-let heightPadding = 0
+//年份范围
+const YEARS_NUMBER = 3 //年份范围
+const IGNORE_DIS = 40 //忽略的距离
+const SCROLL_DONE_TIME = 30 //判断滚动完成等待的时间
+const dateRef = ref<HTMLElement | HTMLElement[] | null>(null) //获取年月项元素
+const scrollTableRef = ref<HTMLElement | null>(null) //获取年月表格元素
+const scrollBoxRef = ref<HTMLElement | null>(null) //获取滚动容器元素
+const locationMap = new Map() //存储年月项的坐标位置
+const XSet = new Set<number>() //存储年月项的X坐标位置
+const YSet = new Set<number>() //存储年月项的Y坐标位置
+let widthPadding = 0 //滚动容器的横向padding值
+let heightPadding = 0 //滚动容器竖向的padding值
 
 onMounted(() => {
   getLocationList()
 })
-function bindEventState() {
-  if (!scrollBoxRef.value) return
-  let timer = 0
-  scrollBoxRef.value.addEventListener('scroll', () => {
-    scrollState.value = 'scrolling'
-    if (timer) clearTimeout(timer)
-    timer = setTimeout(() => {
-      scrollState.value = 'end'
-    }, 200)
-  })
-  scrollBoxRef.value.addEventListener('touchstart', () => {
-    touchState.value = 'touching'
-  })
-  scrollBoxRef.value.addEventListener('touchmove', () => {
-    touchState.value = 'touching'
-  })
-  scrollBoxRef.value.addEventListener('touchend', () => {
-    touchState.value = 'end'
-  })
-}
-onMounted(() => {
-  bindEventState()
-})
+
 function getLocationList() {
   let parentsWidth = scrollBoxRef.value?.offsetWidth
   let childrenWidth = Array.isArray(dateRef.value) && dateRef.value[0].offsetWidth
@@ -62,11 +40,11 @@ function getLocationList() {
     })
   }
 }
-function getScrollLocation() {
+function bindMainScroll() {
   scrollBoxRef.value && scrollBoxRef.value.addEventListener('scroll', handleOnScroll)
 }
 onMounted(() => {
-  getScrollLocation()
+  bindMainScroll()
 })
 function handleOnScroll() {
   if (!scrollBoxRef.value) return
@@ -77,8 +55,32 @@ function handleOnScroll() {
   }
   getMatchByCenter(currentCenter)
 }
+function handleDefaultShow() {
+  // 第一次进入时，默认选中当前年月
+  if (Array.isArray(dateRef.value)) {
+    // 找到对应的元素
+    let currentDate = dateRef.value.find((item) => {
+      let yearValue = Number(item.getAttribute('yearValue'))
+      let monthValue = Number(item.getAttribute('monthValue'))
+      return year.value === yearValue && month.value === monthValue
+    })
+
+    if (currentDate) {
+      // 滚动到对应的元素位置
+      let x = Math.floor(currentDate.offsetLeft - widthPadding)
+      let y = Math.floor(currentDate.offsetTop - heightPadding)
+      let matchStr = `${x},${y}`
+      handleNewMatch(matchStr)
+      handleOnScrollDone({
+        top: currentDate.offsetTop,
+        left: currentDate.offsetLeft,
+        behavior: 'instant'
+      })
+    }
+  }
+}
 onMounted(() => {
-  handleOnScroll()
+  handleDefaultShow()
 })
 let lastMatch = ''
 
@@ -119,19 +121,37 @@ function handleNewMatch(matchStr: string) {
     month.value = Number(newItem.getAttribute('monthValue'))
   }
 }
-watchEffect(() => {
-  if (touchState.value == 'end' && scrollState.value == 'end') {
-    if (!lastMatch) return
-    let target = locationMap.get(lastMatch)
-    handleOnScrollDone(target.offsetTop, target.offsetLeft)
-  }
+function initDoneAction(el: HTMLElement | null) {
+  if (!el) return
+  const { touchState, scrollState } = useDomState(el, {
+    scrollDoneTime: SCROLL_DONE_TIME
+  })
+  watchEffect(() => {
+    if (touchState.value == 'end' && scrollState.value == 'end') {
+      if (!lastMatch) return
+      let target = locationMap.get(lastMatch)
+      handleOnScrollDone({ top: target.offsetTop, left: target.offsetLeft })
+    }
+  })
+}
+onMounted(() => {
+  initDoneAction(scrollBoxRef.value)
 })
-function handleOnScrollDone(top: number, left: number) {
+
+function handleOnScrollDone({
+  top,
+  left,
+  behavior
+}: {
+  top: number
+  left: number
+  behavior?: ScrollBehavior
+}) {
   scrollBoxRef.value &&
     scrollBoxRef.value.scrollTo({
       top: top - heightPadding,
       left: left - widthPadding,
-      behavior: 'smooth'
+      behavior: behavior || 'smooth'
     })
 }
 
@@ -183,8 +203,8 @@ const monthList = [
 </template>
 <style lang="less" scoped>
 .picker {
-  width: 100vw;
-  height: 70vw;
+  width: 100%;
+  height: 100%;
   position: relative;
   background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, #dbd5ae 70%);
   .scroll-box {
@@ -195,7 +215,7 @@ const monthList = [
       display: flex;
       flex-direction: column;
       gap: 10px;
-      padding: calc(35vw - 30px) calc(50vw - 30px);
+      padding: calc(30vw - 30px) calc(50vw - 30px);
       box-sizing: border-box;
       height: fit-content;
       width: fit-content;
