@@ -1,22 +1,11 @@
 <script setup lang="ts">
-import {
-  ref,
-  reactive,
-  toRefs,
-  onBeforeMount,
-  onMounted,
-  handleError,
-  watchEffect,
-  nextTick,
-  watch,
-  onUnmounted
-} from 'vue'
+import { ref, watchEffect, nextTick, watch } from 'vue'
 import { useDomState } from './getDomState'
 
 //年份范围
 const YEARS_NUMBER = 3 //年份范围
-const IGNORE_DIS = 40 //忽略的距离
-const SCROLL_DONE_TIME = 30 //判断滚动完成等待的时间
+const IGNORE_DIS = 60 //忽略的距离
+const SCROLL_DONE_TIME = 280 //判断滚动完成等待的时间
 const dateRef = ref<HTMLElement | HTMLElement[] | null>(null) //获取年月项元素
 const scrollTableRef = ref<HTMLElement | null>(null) //获取年月表格元素
 const scrollBoxRef = ref<HTMLElement | null>(null) //获取滚动容器元素
@@ -25,6 +14,7 @@ const XSet = new Set<number>() //存储年月项的X坐标位置
 const YSet = new Set<number>() //存储年月项的Y坐标位置
 let widthPadding = 0 //滚动容器的横向padding值
 let heightPadding = 0 //滚动容器竖向的padding值
+let isAllDone = false //是否完成初始化
 const { currentView } = defineProps({
   currentView: {
     type: String
@@ -33,13 +23,26 @@ const { currentView } = defineProps({
 watch(
   () => currentView,
   (val) => {
-    init()
+    if (val === 'year&month' && !isAllDone) {
+      init()
+    }
   },
   {
-    once: true
+    immediate: true
   }
 )
 
+function init() {
+  isAllDone = true
+  nextTick(() => {
+    handleDynamicPadding() //根据宽高自动获取padding值
+    getLocationList() //计算年月项的坐标位置，存储到locationMap中
+    bindMainScroll() //绑定滚动事件
+    initDoneAction() //绑定操作完成的事件，页面滚动到匹配的元素位置
+    handleDefaultShow() //处理默认值回显
+  })
+}
+// 根据宽高自动获取padding值
 function handleDynamicPadding() {
   if (scrollTableRef.value && scrollBoxRef.value) {
     let parentWidth = scrollBoxRef.value.offsetWidth
@@ -50,17 +53,7 @@ function handleDynamicPadding() {
   }
 }
 
-function init() {
-  nextTick(() => {
-    handleDynamicPadding()
-    nextTick(() => {
-      getLocationList()
-      bindMainScroll()
-      initDoneAction(scrollBoxRef.value)
-      handleDefaultShow()
-    })
-  })
-}
+// 计算年月项的坐标位置，存储到locationMap中
 function getLocationList() {
   let parentsWidth = scrollBoxRef.value?.offsetWidth
   let childrenWidth = Array.isArray(dateRef.value) && dateRef.value[0].offsetWidth
@@ -83,9 +76,11 @@ function getLocationList() {
     })
   }
 }
+// 绑定滚动事件
 function bindMainScroll() {
   scrollBoxRef.value && scrollBoxRef.value.addEventListener('scroll', handleOnScroll)
 }
+// 处理滚动事件
 function handleOnScroll() {
   if (!scrollBoxRef.value) return
   const scrollBox = scrollBoxRef.value
@@ -95,6 +90,7 @@ function handleOnScroll() {
   }
   getMatchByCenter(currentCenter)
 }
+// 处理默认值回显
 function handleDefaultShow() {
   // 第一次进入时，默认选中当前年月
   if (Array.isArray(dateRef.value)) {
@@ -111,7 +107,7 @@ function handleDefaultShow() {
       let y = Math.floor(currentDate.offsetTop - heightPadding)
       let matchStr = `${x},${y}`
       handleNewMatch(matchStr)
-      handleOnScrollDone({
+      handleScrollTo({
         top: currentDate.offsetTop,
         left: currentDate.offsetLeft,
         behavior: 'instant'
@@ -119,9 +115,8 @@ function handleDefaultShow() {
     }
   }
 }
-
 let lastMatch = ''
-
+// 根据目前中心位置匹配到最近的年月项
 function getMatchByCenter({ x, y }: { x: number; y: number }) {
   let X = Array.from(XSet).sort((a: number, b: number) => Math.abs(a - x) - Math.abs(b - x))[0]
   let Y = Array.from(YSet).sort((a: number, b: number) => Math.abs(a - y) - Math.abs(b - y))[0]
@@ -140,16 +135,18 @@ function getMatchByCenter({ x, y }: { x: number; y: number }) {
   if (`${X},${Y}` === lastMatch || distance > IGNORE_DIS) return
   handleNewMatch(matchStr)
 }
+// 计算两点之间的距离
 function getPointDistance(posA: [number, number], posB: [number, number]) {
   return Math.sqrt(Math.pow(posA[0] - posB[0], 2) + Math.pow(posA[1] - posB[1], 2))
 }
+
 let year = defineModel('year', {
   type: Number
 })
 let month = defineModel('month', {
   type: Number
 })
-
+// 处理匹配到的年月项
 function handleNewMatch(matchStr: string) {
   lastMatch = matchStr
   let newItem = locationMap.get(matchStr)
@@ -159,7 +156,9 @@ function handleNewMatch(matchStr: string) {
     month.value = Number(newItem.getAttribute('monthValue'))
   }
 }
-function initDoneAction(el: HTMLElement | null) {
+// 绑定操作完成的事件，页面滚动到匹配的元素位置
+function initDoneAction() {
+  let el = scrollBoxRef.value
   if (!el) return
   const { touchState, scrollState } = useDomState(el, {
     scrollDoneTime: SCROLL_DONE_TIME
@@ -167,14 +166,13 @@ function initDoneAction(el: HTMLElement | null) {
   watchEffect(() => {
     if (touchState.value == 'end' && scrollState.value == 'end') {
       if (!lastMatch) return
-
       let target = locationMap.get(lastMatch)
-      handleOnScrollDone({ top: target.offsetTop, left: target.offsetLeft })
+      handleScrollTo({ top: target.offsetTop, left: target.offsetLeft })
     }
   })
 }
-
-function handleOnScrollDone({
+// 滚动到指定位置
+function handleScrollTo({
   top,
   left,
   behavior
@@ -190,7 +188,7 @@ function handleOnScrollDone({
       behavior: behavior || 'smooth'
     })
 }
-
+//获取年份列表
 function getYearList() {
   const yearList = []
   const currentYear = new Date().getFullYear()
@@ -214,9 +212,6 @@ const monthList = [
   { name: 'Nov', value: 11, label: '十一月' },
   { name: 'Dec', value: 12, label: '十二月' }
 ]
-function handleVisblitychange(val: boolean) {
-  console.log('handleDynamicPadding', val)
-}
 </script>
 <template>
   <div class="picker" @touchmove.stop>
