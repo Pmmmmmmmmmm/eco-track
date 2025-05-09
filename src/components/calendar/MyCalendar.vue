@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import Day from './components/day.vue'
+import DaysView from './components/DaysView.vue'
 import YearAndMonth from './components/YearAndMonth.vue'
 const year = ref(new Date().getFullYear())
 const month = ref(new Date().getMonth() + 1)
@@ -27,8 +27,13 @@ function handleViewChange() {
       <div class="ctrl-btn" @click="handleViewChange">change</div>
     </div>
     <div class="calendar-body">
-      <YearAndMonth v-if="currentView === 'year&month'" v-model:year="year" v-model:month="month" />
-      <Day v-if="currentView === 'calendar'" />
+      <YearAndMonth
+        :currentView="currentView"
+        v-show="currentView === 'year&month'"
+        v-model:year="year"
+        v-model:month="month"
+      />
+      <DaysView v-show="currentView === 'calendar'" :year="year" :month="month" />
     </div>
   </div>
 </template>
@@ -58,7 +63,7 @@ function handleViewChange() {
 
   .calendar-body {
     width: 100vw;
-    height: 60vw;
+    height: 80vw;
   }
 }
 </style>

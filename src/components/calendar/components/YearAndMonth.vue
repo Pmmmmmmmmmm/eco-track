@@ -1,5 +1,16 @@
 <script setup lang="ts">
-import { ref, reactive, toRefs, onBeforeMount, onMounted, handleError, watchEffect } from 'vue'
+import {
+  ref,
+  reactive,
+  toRefs,
+  onBeforeMount,
+  onMounted,
+  handleError,
+  watchEffect,
+  nextTick,
+  watch,
+  onUnmounted
+} from 'vue'
 import { useDomState } from './getDomState'
 
 //年份范围
@@ -14,11 +25,42 @@ const XSet = new Set<number>() //存储年月项的X坐标位置
 const YSet = new Set<number>() //存储年月项的Y坐标位置
 let widthPadding = 0 //滚动容器的横向padding值
 let heightPadding = 0 //滚动容器竖向的padding值
-
-onMounted(() => {
-  getLocationList()
+const { currentView } = defineProps({
+  currentView: {
+    type: String
+  }
 })
+watch(
+  () => currentView,
+  (val) => {
+    init()
+  },
+  {
+    once: true
+  }
+)
 
+function handleDynamicPadding() {
+  if (scrollTableRef.value && scrollBoxRef.value) {
+    let parentWidth = scrollBoxRef.value.offsetWidth
+    let parentHeight = scrollBoxRef.value.offsetHeight
+    scrollTableRef.value.style.padding = `calc(${parentHeight / 2}px - 30px) calc(${
+      parentWidth / 2
+    }px - 30px)`
+  }
+}
+
+function init() {
+  nextTick(() => {
+    handleDynamicPadding()
+    nextTick(() => {
+      getLocationList()
+      bindMainScroll()
+      initDoneAction(scrollBoxRef.value)
+      handleDefaultShow()
+    })
+  })
+}
 function getLocationList() {
   let parentsWidth = scrollBoxRef.value?.offsetWidth
   let childrenWidth = Array.isArray(dateRef.value) && dateRef.value[0].offsetWidth
@@ -28,6 +70,7 @@ function getLocationList() {
   widthPadding = (parentsWidth - childrenWidth) / 2
   heightPadding = (parentsHeight - childrenHeight) / 2
 
+  // debugger
   if (Array.isArray(dateRef.value)) {
     dateRef.value.forEach((item) => {
       if (scrollBoxRef.value) {
@@ -43,9 +86,6 @@ function getLocationList() {
 function bindMainScroll() {
   scrollBoxRef.value && scrollBoxRef.value.addEventListener('scroll', handleOnScroll)
 }
-onMounted(() => {
-  bindMainScroll()
-})
 function handleOnScroll() {
   if (!scrollBoxRef.value) return
   const scrollBox = scrollBoxRef.value
@@ -79,9 +119,7 @@ function handleDefaultShow() {
     }
   }
 }
-onMounted(() => {
-  handleDefaultShow()
-})
+
 let lastMatch = ''
 
 function getMatchByCenter({ x, y }: { x: number; y: number }) {
@@ -129,14 +167,12 @@ function initDoneAction(el: HTMLElement | null) {
   watchEffect(() => {
     if (touchState.value == 'end' && scrollState.value == 'end') {
       if (!lastMatch) return
+
       let target = locationMap.get(lastMatch)
       handleOnScrollDone({ top: target.offsetTop, left: target.offsetLeft })
     }
   })
 }
-onMounted(() => {
-  initDoneAction(scrollBoxRef.value)
-})
 
 function handleOnScrollDone({
   top,
@@ -178,6 +214,9 @@ const monthList = [
   { name: 'Nov', value: 11, label: '十一月' },
   { name: 'Dec', value: 12, label: '十二月' }
 ]
+function handleVisblitychange(val: boolean) {
+  console.log('handleDynamicPadding', val)
+}
 </script>
 <template>
   <div class="picker" @touchmove.stop>
@@ -191,7 +230,7 @@ const monthList = [
             ref="dateRef"
             :yearValue="yearItem"
             :monthValue="monthItem.value"
-            :key="monthItem.value"
+            :key="yearItem + monthItem.value"
           >
             <div class="years">{{ yearItem }}年</div>
             <div class="month">{{ monthItem.value }}月</div>
@@ -215,7 +254,6 @@ const monthList = [
       display: flex;
       flex-direction: column;
       gap: 10px;
-      padding: calc(30vw - 30px) calc(50vw - 30px);
       box-sizing: border-box;
       height: fit-content;
       width: fit-content;
