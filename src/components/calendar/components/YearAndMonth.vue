@@ -15,11 +15,7 @@ const YSet = new Set<number>() //存储年月项的Y坐标位置
 let widthPadding = 0 //滚动容器的横向padding值
 let heightPadding = 0 //滚动容器竖向的padding值
 let isAllDone = false //是否完成初始化
-const { currentView } = defineProps({
-  currentView: {
-    type: String
-  }
-})
+let { currentView } = defineProps<{ currentView: 'calendar' | 'year&month' }>()
 watch(
   () => currentView,
   (val) => {
@@ -98,7 +94,7 @@ function handleDefaultShow() {
     let currentDate = dateRef.value.find((item) => {
       let yearValue = Number(item.getAttribute('yearValue'))
       let monthValue = Number(item.getAttribute('monthValue'))
-      return year.value === yearValue && month.value === monthValue
+      return currentYear.value === yearValue && currentMonth.value === monthValue
     })
 
     if (currentDate) {
@@ -151,14 +147,34 @@ let year = defineModel('year', {
 let month = defineModel('month', {
   type: Number
 })
+watch(
+  () => currentView,
+  (val) => {
+    if (val === 'year&month') {
+      currentMonth.value = month.value
+      currentYear.value = year.value
+      // 处理默认值回显
+      nextTick(() => {
+        handleDefaultShow()
+      })
+    }
+  }
+)
+
+const currentYear = ref(year.value) //当前选中的年份
+const currentMonth = ref(month.value) //当前选中的月份
 // 处理匹配到的年月项
 function handleNewMatch(matchStr: string) {
+  if (lastMatch) {
+    let lastItem = locationMap.get(lastMatch)
+    lastItem && lastItem.classList.remove('active')
+  }
   lastMatch = matchStr
   let newItem = locationMap.get(matchStr)
   if (newItem) {
     newItem.classList.add('active')
-    year.value = Number(newItem.getAttribute('yearValue'))
-    month.value = Number(newItem.getAttribute('monthValue'))
+    currentYear.value = Number(newItem.getAttribute('yearValue'))
+    currentMonth.value = Number(newItem.getAttribute('monthValue'))
   }
 }
 // 绑定操作完成的事件，页面滚动到匹配的元素位置
@@ -171,6 +187,8 @@ function initDoneAction() {
   watchEffect(() => {
     if (touchState.value == 'end' && scrollState.value == 'end') {
       if (!lastMatch) return
+      year.value = currentYear.value
+      month.value = currentMonth.value
       let target = locationMap.get(lastMatch)
       handleScrollTo({ top: target.offsetTop, left: target.offsetLeft })
     }

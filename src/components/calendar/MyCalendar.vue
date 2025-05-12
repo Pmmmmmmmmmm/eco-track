@@ -2,9 +2,9 @@
 import { ref, computed } from 'vue'
 import DaysView from './components/DaysView.vue'
 import YearAndMonth from './components/YearAndMonth.vue'
-const year = ref(2024)
-const month = ref(7)
-const day = ref(30)
+const year = ref(new Date().getFullYear())
+const month = ref(new Date().getMonth() + 1)
+const day = ref(new Date().getDate())
 let currentView = ref<'calendar' | 'year&month'>('calendar')
 function handleViewChange() {
   if (currentView.value === 'calendar') {

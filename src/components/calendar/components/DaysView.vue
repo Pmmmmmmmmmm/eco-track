@@ -210,7 +210,7 @@ const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
     }
     .is-next-month {
       color: #757575;
-      background-color: rgb(107, 203, 85);
+      background-color: rgb(220, 255, 212);
       border-radius: 0;
     }
     .last_preMonth_day {
