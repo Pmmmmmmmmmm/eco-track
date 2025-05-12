@@ -4,7 +4,7 @@ import { useDomState } from './getDomState'
 
 //年份范围
 const YEARS_NUMBER = 3 //年份范围
-const IGNORE_DIS = 60 //忽略的距离
+const CATCH_DISTANCE = 50 //忽略的距离
 const SCROLL_DONE_TIME = 280 //判断滚动完成等待的时间
 const dateRef = ref<HTMLElement | HTMLElement[] | null>(null) //获取年月项元素
 const scrollTableRef = ref<HTMLElement | null>(null) //获取年月表格元素
@@ -120,19 +120,24 @@ let lastMatch = ''
 function getMatchByCenter({ x, y }: { x: number; y: number }) {
   let X = Array.from(XSet).sort((a: number, b: number) => Math.abs(a - x) - Math.abs(b - x))[0]
   let Y = Array.from(YSet).sort((a: number, b: number) => Math.abs(a - y) - Math.abs(b - y))[0]
+  // 找到距离中心点最近的年月项
   let matchStr = `${X},${Y}`
+  // 计算距离
   let distance = getPointDistance([X, Y], [x, y])
+  //如果有上一个匹配的项
   if (lastMatch) {
+    //获取上一个匹配的项
     let lastItem = locationMap.get(lastMatch)
     let lastPoint = lastMatch.split(',').map((item) => Number(item))
+    //计算上一个匹配项与当前屏幕中心的距离
     let distance = getPointDistance([lastPoint[0], lastPoint[1]], [x, y])
-    if (distance < IGNORE_DIS) return
+    if (distance <= CATCH_DISTANCE) return // 如果距离小于捕获距离，则不处理
 
     lastItem && lastItem.classList.remove('active')
     lastMatch = ''
   }
 
-  if (`${X},${Y}` === lastMatch || distance > IGNORE_DIS) return
+  if (`${X},${Y}` === lastMatch || distance > CATCH_DISTANCE) return // 如果匹配到的元素和上一个元素相同，或者距离大于捕获距离，则不处理
   handleNewMatch(matchStr)
 }
 // 计算两点之间的距离
