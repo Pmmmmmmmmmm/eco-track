@@ -17,13 +17,17 @@ const handleSubmit = async () => {
     transactionTime: transactionTime.value
   })
 }
-let selectedDate = ref('')
-let visible = ref<boolean>(true)
+let selectedDate = ref(new Date())
+let visible = ref<boolean>(false)
+function handleCalendarSelected(date: [number, number, number]) {
+  selectedDate.value = new Date(date[0], date[1] - 1, date[2])
+  visible.value = false
+}
 </script>
 <template>
   <div class="add-order">
     <PopUp v-model:visible="visible" location="bottom">
-      <MyCalendar v-model:date="selectedDate" />
+      <MyCalendar @handle-confirm="handleCalendarSelected" @handle-cancel="visible = false" />
     </PopUp>
     <div class="add-form">
       <div class="form-item">
@@ -37,6 +41,9 @@ let visible = ref<boolean>(true)
       <div class="form-item">
         <div class="label">DATE：</div>
         <div class="time-input">
+          {{ selectedDate.getFullYear() }}/{{ selectedDate.getMonth() + 1 }}/{{
+            selectedDate.getDate()
+          }}
           <div class="btn" @click="visible = true">SELECT DATE</div>
         </div>
       </div>
