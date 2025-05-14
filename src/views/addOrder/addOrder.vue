@@ -4,6 +4,7 @@ import { addOrder } from '@/api/order/order'
 import type { addOrderDto } from '@/types/order'
 import MyCalendar from '@/components/calendar/MyCalendar.vue'
 import PopUp from '@/components/PopUp/PopUp.vue'
+import TimePicker from '@/components/TimePicker/TimePicker.vue'
 onBeforeMount(() => {})
 onMounted(() => {})
 let commodity = ref('')
@@ -19,6 +20,7 @@ const handleSubmit = async () => {
 }
 let selectedDate = ref(new Date())
 let visible = ref<boolean>(false)
+let TimePickerVisible = ref<boolean>(true)
 function handleCalendarSelected(date: [number, number, number]) {
   selectedDate.value = new Date(date[0], date[1] - 1, date[2])
   visible.value = false
@@ -28,6 +30,9 @@ function handleCalendarSelected(date: [number, number, number]) {
   <div class="add-order">
     <PopUp v-model:visible="visible" location="bottom">
       <MyCalendar @handle-confirm="handleCalendarSelected" @handle-cancel="visible = false" />
+    </PopUp>
+    <PopUp v-model:visible="TimePickerVisible" location="bottom">
+      <TimePicker />
     </PopUp>
     <div class="add-form">
       <div class="form-item">

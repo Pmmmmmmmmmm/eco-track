@@ -8,6 +8,7 @@ export const useDomState = (el: HTMLElement, { scrollDoneTime = 50 }) => {
     if (timer) clearTimeout(timer)
     timer = setTimeout(() => {
       scrollState.value = 'end'
+      clearTimeout(timer)
     }, scrollDoneTime)
   })
   el.addEventListener('touchstart', () => {
@@ -19,6 +20,7 @@ export const useDomState = (el: HTMLElement, { scrollDoneTime = 50 }) => {
   el.addEventListener('touchend', () => {
     touchState.value = 'end'
   })
+
   return {
     touchState,
     scrollState
