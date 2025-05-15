@@ -7,6 +7,7 @@ let listRef = useTemplateRef('listRef')
 let itemsRef = useTemplateRef('itemsRef')
 let itemPosList: Map<number, HTMLElement> | null = new Map()
 let childHeight = 0
+let padding: number | null = 0
 function bindDomDoneAction() {
   // 绑定操作完成的事件，页面滚动到匹配的元素位置
   if (!listRef.value) return
@@ -22,7 +23,7 @@ function bindDomDoneAction() {
 
 function init() {
   // 动态设置padding值
-  let padding = setDynamicPadding()
+  padding = setDynamicPadding()
   if (!itemsRef.value) return
   // 初始化itemPosList
   itemPosList = getTargetPositionList(itemsRef.value, padding)
@@ -37,6 +38,8 @@ function getTargetPositionList(target: HTMLElement[] | null, padding: number | n
   target.forEach((item) => {
     map.set(item.offsetTop - padding, item)
   })
+  // console.log(map)
+
   return map
 }
 function setDynamicPadding() {
@@ -59,55 +62,48 @@ onMounted(() => {
 
 let lastSelectedItem = ref<HTMLElement | null>(null)
 let currentSelectedItemPos = 0
-let lastScrollLocation = 0
 function handleOnScroll(e: Event) {
   if (e.target) {
     let scrollTop = (e.target as HTMLElement).scrollTop
     let matchPos = Math.round(scrollTop / childHeight) * childHeight
-    let targetItem = itemPosList?.get(matchPos)
-
     let preItem = itemPosList?.get(matchPos - childHeight)
-    let nextItem = itemPosList?.get(matchPos + childHeight)
-
-    // preItem && setAnimation(preItem, false, (scrollTop - (matchPos - childHeight)) / scrollTop)
-    console.log(Math.abs(matchPos - scrollTop) / scrollTop)
-
-    // targetItem && setAnimation(targetItem, true, (scrollTop - matchPos) / scrollTop)
-
-    // nextItem && setAnimation(nextItem, false, (scrollTop - (matchPos + childHeight)) / scrollTop)
-
-    // if
-    // if (lastSelectedItem.value) {
-    //   lastSelectedItem.value.classList.remove('active')
-    // }
-    // targetItem?.classList.add('active')
-    // currentSelectedItemPos = Math.round(scrollTop / 50) * 50
-
+    let targetItem = itemPosList?.get(matchPos)
+    if (!targetItem || !padding) return
+    let currentRate = (targetItem.offsetTop - padding - scrollTop) / childHeight
+    if (targetItem) targetItem.style.transform = `scale(${2 - 2 * Math.abs(currentRate)})`
     lastSelectedItem.value = targetItem ? targetItem : null
+    currentSelectedItemPos = matchPos
   }
 }
-let num = 0
-function setAnimation(target: HTMLElement, isShowing: boolean, rate: number) {
-  // 给当前选中的元素设置动画
-  requestAnimationFrame(() => {
-    if (isShowing) {
-      target.style.transform = `scale(${1.6 * rate})`
-    } else {
-      target.style.transform = `scale(${1 * (1 - rate)})`
-    }
-  })
-}
+
 function handleDoneAction() {
   listRef.value?.scrollTo({
     top: currentSelectedItemPos,
     behavior: 'smooth'
   })
 }
+function handleCurrentShow() {
+  let target = itemsRef.value?.find((item) => {
+    let targetValue = item.getAttribute('value')
+    return '00' === targetValue
+  })
+  if (!target) return
+  target.style.transform = `scale(1.6)`
+}
+onMounted(() => {
+  handleCurrentShow()
+})
 </script>
 <template>
   <div ref="listRef" class="list">
     <div>
-      <div class="scroll-item" ref="itemsRef" v-for="(item, index) in options" :key="index">
+      <div
+        class="scroll-item"
+        ref="itemsRef"
+        v-for="(item, index) in options"
+        :value="item"
+        :key="index"
+      >
         {{ item }}
       </div>
     </div>
