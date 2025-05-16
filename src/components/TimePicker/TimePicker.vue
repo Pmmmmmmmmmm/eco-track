@@ -179,7 +179,6 @@ function handleSetTimeNow() {
   minute.value = now.getMinutes().toString().padStart(2, '0')
   second.value = now.getSeconds().toString().padStart(2, '0')
 }
-onMounted(() => {})
 </script>
 <template>
   <div class="time-picker">
@@ -189,7 +188,7 @@ onMounted(() => {})
       <div class="btn-item" @click="handleSetTimeNow">now</div>
     </div>
     <div class="input-line">
-      <div class="line"></div>
+      <!-- <div class="line"></div> -->
       <ScrollList v-model="hour" :options="hourList" />时
       <ScrollList v-model="minute" :options="minuteList" />分
       <ScrollList v-model="second" :options="secondList" />秒

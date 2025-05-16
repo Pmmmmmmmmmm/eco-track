@@ -23,11 +23,11 @@ const handleSubmit = async () => {
     transactionTime: transactionTime.value
   })
 }
-let visible = ref<boolean>(false)
-let timePickerVisible = ref<boolean>(true)
+let datePickerVisible = ref<boolean>(false)
+let timePickerVisible = ref<boolean>(false)
 function handleCalendarSelected(date: [number, number, number]) {
   transactionDate.value = `${date[0]}-${date[1]}-${date[2]}`
-  visible.value = false
+  datePickerVisible.value = false
 }
 function handleTimeSelected(time: [string, string, string]) {
   transactionTime.value = `${time[0]}:${time[1]}:${time[2]}`
@@ -36,20 +36,6 @@ function handleTimeSelected(time: [string, string, string]) {
 </script>
 <template>
   <div class="add-order">
-    <PopUp v-model:visible="visible" location="bottom">
-      <MyCalendar
-        :default-value="transactionDate"
-        @handle-confirm="handleCalendarSelected"
-        @handle-cancel="visible = false"
-      />
-    </PopUp>
-    <PopUp v-model:visible="timePickerVisible" location="bottom">
-      <TimePicker
-        :default-value="transactionTime"
-        @handle-confirm="handleTimeSelected"
-        @handle-cancel="timePickerVisible = false"
-      />
-    </PopUp>
     <div class="add-form">
       <div class="form-item">
         <div class="label">commodity：</div>
@@ -75,6 +61,20 @@ function handleTimeSelected(time: [string, string, string]) {
       </div>
       <div class="submit-btn" @click="handleSubmit">SUBMIT</div>
     </div>
+    <PopUp v-model:visible="datePickerVisible" location="bottom">
+      <MyCalendar
+        :default-value="transactionDate"
+        @handle-confirm="handleCalendarSelected"
+        @handle-cancel="datePickerVisible = false"
+      />
+    </PopUp>
+    <PopUp v-model:visible="timePickerVisible" location="bottom">
+      <TimePicker
+        :default-value="transactionTime"
+        @handle-confirm="handleTimeSelected"
+        @handle-cancel="timePickerVisible = false"
+      />
+    </PopUp>
   </div>
 </template>
 <style lang="less" scoped>
