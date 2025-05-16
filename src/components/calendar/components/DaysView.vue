@@ -2,21 +2,18 @@
 import { ref, reactive, toRefs, onBeforeMount, onMounted, watch, watchEffect } from 'vue'
 
 type DayItem = {
-  daysNum: number
-  monthNum: number
-  yearNum: number
+  daysNum: string
+  monthNum: string
+  yearNum: string
 }
 let year = defineModel('year', {
-  type: Number,
-  default: new Date().getFullYear()
+  type: String
 })
 let month = defineModel('month', {
-  type: Number,
-  default: new Date().getMonth() + 1
+  type: String
 })
 let day = defineModel('day', {
-  type: Number,
-  default: new Date().getDate()
+  type: String
 })
 const currentMonth = ref(new Date())
 const preMonth = ref(new Date())
@@ -27,6 +24,13 @@ let nextList = ref<DayItem[]>([])
 const daysInMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
 const firstDayOfWeek = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1).getDay()
 
+function getDateObj(date: Date, day: number): DayItem {
+  return {
+    daysNum: day.toString().padStart(2, '0'),
+    monthNum: (date.getMonth() + 1).toString().padStart(2, '0'),
+    yearNum: date.getFullYear().toString()
+  }
+}
 const fillDaysList = () => {
   const currentMonthDays = daysInMonth(currentMonth.value)
   const preMonthDays = daysInMonth(preMonth.value)
@@ -41,60 +45,40 @@ const fillDaysList = () => {
     // 比如当前月的第一天是周三，则需要填充上个月的最后两天形成完整的一周
     let needPreMonth = startDay - 1 // 计算上个月需要填充的天数(算出上月最后一天是周几就需要补几天)
     for (let day = preMonthDays; preList.value.length < needPreMonth; day--) {
-      preList.value.unshift({
-        daysNum: day,
-        monthNum: preMonth.value.getMonth() + 1,
-        yearNum: preMonth.value.getFullYear()
-      })
+      preList.value.unshift(getDateObj(preMonth.value, day))
     }
   } else if (startDay == 1) {
     // 补充一整周的上月日期
     for (let day = preMonthDays; preList.value.length < 7; day--) {
-      preList.value.unshift({
-        daysNum: day,
-        monthNum: preMonth.value.getMonth() + 1,
-        yearNum: preMonth.value.getFullYear()
-      })
+      preList.value.unshift(getDateObj(preMonth.value, day))
     }
   }
   for (let day = 1; day <= currentMonthDays; day++) {
-    currentList.value.push({
-      daysNum: day,
-      monthNum: currentMonth.value.getMonth() + 1,
-      yearNum: currentMonth.value.getFullYear()
-    })
+    currentList.value.push(getDateObj(currentMonth.value, day))
   }
   if (endDay > 1) {
     let needNextMonth = 7 - endDay + 1 // 计算下个月需要填充的天数（计算出本月最后一天是周几，再用7减去它，就是需要补的下个月的天数）
     for (let day = 1; nextList.value.length < needNextMonth; day++) {
-      nextList.value.push({
-        daysNum: day,
-        monthNum: nextMonth.value.getMonth() + 1,
-        yearNum: nextMonth.value.getFullYear()
-      })
+      nextList.value.push(getDateObj(nextMonth.value, day))
     }
   } else if (endDay == 1) {
     // 补充一整周的下月日期
     for (let day = 1; nextList.value.length < 7; day++) {
-      nextList.value.push({
-        daysNum: day,
-        monthNum: nextMonth.value.getMonth() + 1,
-        yearNum: nextMonth.value.getFullYear()
-      })
+      nextList.value.push(getDateObj(nextMonth.value, day))
     }
   }
 }
 watchEffect(() => {
   currentMonth.value = new Date(`${year.value}-${month.value}`)
-  if (month.value == 1) {
-    preMonth.value = new Date(`${year.value - 1}-12`)
+  if (month.value == '1') {
+    preMonth.value = new Date(`${Number(year.value) - 1}-12`)
     nextMonth.value = new Date(`${year.value}-2`)
-  } else if (month.value == 12) {
-    nextMonth.value = new Date(`${year.value + 1}-1`)
+  } else if (month.value == '12') {
+    nextMonth.value = new Date(`${Number(year.value) + 1}-1`)
     preMonth.value = new Date(`${year.value}-11`)
   } else {
-    preMonth.value = new Date(`${year.value}-${month.value - 1}`)
-    nextMonth.value = new Date(`${year.value}-${month.value + 1}`)
+    preMonth.value = new Date(`${year.value}-${Number(month.value) - 1}`)
+    nextMonth.value = new Date(`${year.value}-${Number(month.value) + 1}`)
   }
   fillDaysList()
 })

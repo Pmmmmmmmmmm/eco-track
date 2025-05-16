@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, toRefs, onBeforeMount, onMounted, useTemplateRef } from 'vue'
 import ScrollList from './components/ScrollList.vue'
+const { defaultValue } = defineProps<{ defaultValue?: string }>()
 const hourList = [
   '00',
   '01',
@@ -152,28 +153,44 @@ const secondList = [
   '58',
   '59'
 ]
+const emit = defineEmits(['handleConfirm', 'handleCancel'])
+
+let defaultValueList = defaultValue?.split(':')
 
 const hour = ref('00')
 const minute = ref('00')
 const second = ref('00')
+if (defaultValueList) {
+  hour.value = defaultValueList[0].padStart(2, '0')
+  minute.value = defaultValueList[1].padStart(2, '0')
+  second.value = defaultValueList[2].padStart(2, '0')
+}
 const time = defineModel('time', {
-  type: Object as () => [number, number, number],
-  default: [0, 0, 0]
+  type: Object as () => [string, string, string],
+  default: ['00', '00', '00']
 })
-
+function handleTimeConfirm() {
+  time.value = [hour.value, minute.value, second.value]
+  emit('handleConfirm', time.value)
+}
+function handleSetTimeNow() {
+  let now = new Date()
+  hour.value = now.getHours().toString().padStart(2, '0')
+  minute.value = now.getMinutes().toString().padStart(2, '0')
+  second.value = now.getSeconds().toString().padStart(2, '0')
+}
 onMounted(() => {})
 </script>
 <template>
   <div class="time-picker">
-    {{ hour }} : {{ minute }} : {{ second }}
     <div class="control-btn">
-      <div class="btn-item">cancel</div>
-      <div class="btn-item">confirm</div>
-      <div class="btn-item">now</div>
+      <div class="btn-item" @click="emit('handleCancel')">cancel</div>
+      <div class="btn-item" @click="handleTimeConfirm">confirm</div>
+      <div class="btn-item" @click="handleSetTimeNow">now</div>
     </div>
     <div class="input-line">
       <div class="line"></div>
-      <ScrollList :options="hourList" v-model="hour" />时
+      <ScrollList v-model="hour" :options="hourList" />时
       <ScrollList v-model="minute" :options="minuteList" />分
       <ScrollList v-model="second" :options="secondList" />秒
     </div>
@@ -184,7 +201,7 @@ onMounted(() => {})
   display: flex;
   flex-direction: column;
   width: 100vw;
-  background-color: antiquewhite;
+  background-color: rgb(95, 95, 95);
   .control-btn {
     display: flex;
     justify-content: space-between;

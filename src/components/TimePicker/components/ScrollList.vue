@@ -1,8 +1,21 @@
 <script setup lang="ts">
-import { ref, reactive, toRefs, onBeforeMount, onMounted, useTemplateRef, watchEffect } from 'vue'
+import {
+  ref,
+  reactive,
+  toRefs,
+  onBeforeMount,
+  onMounted,
+  useTemplateRef,
+  watchEffect,
+  watch
+} from 'vue'
 import { useDomState } from '../../calendar/components/getDomState'
 const { options } = defineProps<{ options: unknown[] }>()
 
+const model = defineModel()
+watch(model, (val) => {
+  handleCurrentShow()
+})
 let listRef = useTemplateRef('listRef')
 let itemsRef = useTemplateRef('itemsRef')
 let itemPosList: Map<number, HTMLElement> | null = new Map()
@@ -38,8 +51,6 @@ function getTargetPositionList(target: HTMLElement[] | null, padding: number | n
   target.forEach((item) => {
     map.set(item.offsetTop - padding, item)
   })
-  // console.log(map)
-
   return map
 }
 function setDynamicPadding() {
@@ -73,6 +84,7 @@ function handleOnScroll(e: Event) {
     if (targetItem) targetItem.style.transform = `scale(${2 - 2 * Math.abs(currentRate)})`
     lastSelectedItem.value = targetItem ? targetItem : null
     currentSelectedItemPos = matchPos
+    model.value = targetItem.getAttribute('itemValue')
   }
 }
 
@@ -84,11 +96,11 @@ function handleDoneAction() {
 }
 function handleCurrentShow() {
   let target = itemsRef.value?.find((item) => {
-    let targetValue = item.getAttribute('value')
-    return '00' === targetValue
+    let targetValue = item.getAttribute('itemValue')
+    return model.value === targetValue
   })
   if (!target) return
-  target.style.transform = `scale(1.6)`
+  target.style.transform = `scale(2)`
 }
 onMounted(() => {
   handleCurrentShow()
@@ -101,7 +113,7 @@ onMounted(() => {
         class="scroll-item"
         ref="itemsRef"
         v-for="(item, index) in options"
-        :value="item"
+        :itemValue="item"
         :key="index"
       >
         {{ item }}

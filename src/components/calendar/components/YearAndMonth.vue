@@ -59,7 +59,6 @@ function getLocationList() {
   widthPadding = (parentsWidth - childrenWidth) / 2
   heightPadding = (parentsHeight - childrenHeight) / 2
 
-  // debugger
   if (Array.isArray(dateRef.value)) {
     dateRef.value.forEach((item) => {
       if (scrollBoxRef.value) {
@@ -92,8 +91,8 @@ function handleDefaultShow() {
   if (Array.isArray(dateRef.value)) {
     // 找到对应的元素
     let currentDate = dateRef.value.find((item) => {
-      let yearValue = Number(item.getAttribute('yearValue'))
-      let monthValue = Number(item.getAttribute('monthValue'))
+      let yearValue = item.getAttribute('yearValue')
+      let monthValue = item.getAttribute('monthValue')
       return currentYear.value === yearValue && currentMonth.value === monthValue
     })
 
@@ -142,10 +141,10 @@ function getPointDistance(posA: [number, number], posB: [number, number]) {
 }
 
 let year = defineModel('year', {
-  type: Number
+  type: String
 })
 let month = defineModel('month', {
-  type: Number
+  type: String
 })
 watch(
   () => currentView,
@@ -173,8 +172,8 @@ function handleNewMatch(matchStr: string) {
   let newItem = locationMap.get(matchStr)
   if (newItem) {
     newItem.classList.add('active')
-    currentYear.value = Number(newItem.getAttribute('yearValue'))
-    currentMonth.value = Number(newItem.getAttribute('monthValue'))
+    currentYear.value = newItem.getAttribute('yearValue')
+    currentMonth.value = newItem.getAttribute('monthValue')
   }
 }
 // 绑定操作完成的事件，页面滚动到匹配的元素位置

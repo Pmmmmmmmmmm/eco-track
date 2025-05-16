@@ -9,7 +9,12 @@ onBeforeMount(() => {})
 onMounted(() => {})
 let commodity = ref('')
 let amount = ref(0)
-let transactionTime = ref('')
+let transactionTime = ref(
+  `${new Date().getHours().toString().padStart(2, '0')}:${new Date().getMinutes().toString().padStart(2, '0')}:${new Date().getSeconds().toString().padStart(2, '0')}`
+)
+let transactionDate = ref(
+  `${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}`
+)
 
 const handleSubmit = async () => {
   let res = await addOrder({
@@ -18,21 +23,32 @@ const handleSubmit = async () => {
     transactionTime: transactionTime.value
   })
 }
-let selectedDate = ref(new Date())
 let visible = ref<boolean>(false)
-let TimePickerVisible = ref<boolean>(true)
+let timePickerVisible = ref<boolean>(true)
 function handleCalendarSelected(date: [number, number, number]) {
-  selectedDate.value = new Date(date[0], date[1] - 1, date[2])
+  transactionDate.value = `${date[0]}-${date[1]}-${date[2]}`
   visible.value = false
+}
+function handleTimeSelected(time: [string, string, string]) {
+  transactionTime.value = `${time[0]}:${time[1]}:${time[2]}`
+  timePickerVisible.value = false
 }
 </script>
 <template>
   <div class="add-order">
     <PopUp v-model:visible="visible" location="bottom">
-      <MyCalendar @handle-confirm="handleCalendarSelected" @handle-cancel="visible = false" />
+      <MyCalendar
+        :default-value="transactionDate"
+        @handle-confirm="handleCalendarSelected"
+        @handle-cancel="visible = false"
+      />
     </PopUp>
-    <PopUp v-model:visible="TimePickerVisible" location="bottom">
-      <TimePicker />
+    <PopUp v-model:visible="timePickerVisible" location="bottom">
+      <TimePicker
+        :default-value="transactionTime"
+        @handle-confirm="handleTimeSelected"
+        @handle-cancel="timePickerVisible = false"
+      />
     </PopUp>
     <div class="add-form">
       <div class="form-item">
@@ -46,16 +62,15 @@ function handleCalendarSelected(date: [number, number, number]) {
       <div class="form-item">
         <div class="label">DATE：</div>
         <div class="time-input">
-          {{ selectedDate.getFullYear() }}/{{ selectedDate.getMonth() + 1 }}/{{
-            selectedDate.getDate()
-          }}
-          <div class="btn" @click="visible = true">SELECT DATE</div>
+          {{ transactionDate }}
+          <div class="btn" @click="visible = true">SELECT</div>
         </div>
       </div>
       <div class="form-item">
         <div class="label">TIME：</div>
         <div class="time-input">
-          <div class="btn">SELECT TIME</div>
+          {{ transactionTime }}
+          <div class="btn" @click="timePickerVisible = true">SELECT</div>
         </div>
       </div>
       <div class="submit-btn" @click="handleSubmit">SUBMIT</div>

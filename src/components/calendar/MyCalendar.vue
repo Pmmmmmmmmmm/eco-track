@@ -2,15 +2,24 @@
 import { ref, computed } from 'vue'
 import DaysView from './components/DaysView.vue'
 import YearAndMonth from './components/YearAndMonth.vue'
-const year = ref()
-const month = ref()
-const day = ref()
-function setDefaultDate(defaultDate: Date = new Date()) {
-  year.value = defaultDate.getFullYear()
-  month.value = defaultDate.getMonth() + 1
-  day.value = defaultDate.getDate()
+const year = ref(new Date().getFullYear().toString())
+const month = ref('01')
+const day = ref('01')
+const { defaultValue } = defineProps<{ defaultValue?: string }>()
+function setDefaultDate(defaultDate: string | undefined) {
+  if (defaultDate) {
+    let dateList = defaultDate.split('-')
+    year.value = dateList[0]
+    month.value = dateList[1]
+    day.value = dateList[2]
+  }
 }
-setDefaultDate()
+setDefaultDate(defaultValue)
+function setDateToToday() {
+  let now = new Date()
+  year.value = now.getFullYear().toString()
+  month.value = (now.getMonth() + 1).toString().padStart(2, '0')
+}
 let currentView = ref<'calendar' | 'year&month'>('calendar')
 function handleViewChange() {
   if (currentView.value === 'calendar') {
@@ -21,7 +30,7 @@ function handleViewChange() {
 }
 const getTipText = computed(() => {
   let now = new Date()
-  let selectedDate = new Date(year.value, month.value - 1, day.value)
+  let selectedDate = new Date(Number(year.value), Number(month.value) - 1, Number(day.value))
   let diff = selectedDate.getTime() - now.getTime()
   let daysDiff = Math.ceil(diff / (1000 * 60 * 60 * 24))
   return daysDiff == 0
@@ -44,7 +53,7 @@ const emit = defineEmits(['handleConfirm', 'handleCancel'])
       <div class="ctrl-btn" @click="emit('handleCancel')">cancel</div>
       <div class="ctrl-btn" @click="emit('handleConfirm', [year, month, day])">confirm</div>
       <div class="ctrl-btn" @click="handleViewChange">切换视图</div>
-      <div class="ctrl-btn" @click="() => setDefaultDate()">今</div>
+      <div class="ctrl-btn" @click="setDateToToday">今</div>
     </div>
     <div class="calendar-body">
       <YearAndMonth
