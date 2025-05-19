@@ -183,12 +183,12 @@ function handleSetTimeNow() {
 <template>
   <div class="time-picker">
     <div class="control-btn">
+      <div class="btn-item">{{ hour }}:{{ minute }}:{{ second }}</div>
       <div class="btn-item" @click="emit('handleCancel')">cancel</div>
       <div class="btn-item" @click="handleTimeConfirm">confirm</div>
       <div class="btn-item" @click="handleSetTimeNow">now</div>
     </div>
     <div class="input-line">
-      <!-- <div class="line"></div> -->
       <ScrollList v-model="hour" :options="hourList" />时
       <ScrollList v-model="minute" :options="minuteList" />分
       <ScrollList v-model="second" :options="secondList" />秒

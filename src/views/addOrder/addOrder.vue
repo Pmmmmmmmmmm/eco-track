@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, toRefs, onBeforeMount, onMounted } from 'vue'
+import { ref, reactive, toRefs, onBeforeMount, onMounted, watch } from 'vue'
 import { addOrder } from '@/api/order/order'
 import type { addOrderDto } from '@/types/order'
 import MyCalendar from '@/components/calendar/MyCalendar.vue'
@@ -24,6 +24,7 @@ const handleSubmit = async () => {
   })
 }
 let datePickerVisible = ref<boolean>(false)
+
 let timePickerVisible = ref<boolean>(false)
 function handleCalendarSelected(date: [number, number, number]) {
   transactionDate.value = `${date[0]}-${date[1]}-${date[2]}`
@@ -49,7 +50,7 @@ function handleTimeSelected(time: [string, string, string]) {
         <div class="label">DATE：</div>
         <div class="time-input">
           {{ transactionDate }}
-          <div class="btn" @click="visible = true">SELECT</div>
+          <div class="btn" @click="datePickerVisible = true">SELECT</div>
         </div>
       </div>
       <div class="form-item">

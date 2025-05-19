@@ -11,16 +11,17 @@ import {
 } from 'vue'
 import { useDomState } from '../../calendar/components/getDomState'
 const { options } = defineProps<{ options: unknown[] }>()
-
 const model = defineModel()
-watch(model, (val) => {
-  handleCurrentShow()
-})
+// watch(model, (val) => {
+//   handleDataChange()
+//   // console.log('watch', val)
+// })
 let listRef = useTemplateRef('listRef')
 let itemsRef = useTemplateRef('itemsRef')
 let itemPosList: Map<number, HTMLElement> | null = new Map()
 let childHeight = 0
 let padding: number | null = 0
+
 function bindDomDoneAction() {
   // 绑定操作完成的事件，页面滚动到匹配的元素位置
   if (!listRef.value) return
@@ -47,7 +48,7 @@ function init() {
 }
 function getTargetPositionList(target: HTMLElement[] | null, padding: number | null) {
   if (!target || !padding) return null
-  let map = new Map()
+  let map = new Map<number, HTMLElement>()
   target.forEach((item) => {
     map.set(item.offsetTop - padding, item)
   })
@@ -77,7 +78,6 @@ function handleOnScroll(e: Event) {
   if (e.target) {
     let scrollTop = (e.target as HTMLElement).scrollTop
     let matchPos = Math.round(scrollTop / childHeight) * childHeight
-    let preItem = itemPosList?.get(matchPos - childHeight)
     let targetItem = itemPosList?.get(matchPos)
     if (!targetItem || !padding) return
     let currentRate = (targetItem.offsetTop - padding - scrollTop) / childHeight
@@ -94,16 +94,21 @@ function handleDoneAction() {
     behavior: 'smooth'
   })
 }
-function handleCurrentShow() {
+function handleDataChange() {
   let target = itemsRef.value?.find((item) => {
     let targetValue = item.getAttribute('itemValue')
     return model.value === targetValue
   })
-  if (!target) return
+  if (!target || !padding) return
+  currentSelectedItemPos = target.offsetTop - padding
+  listRef.value?.scrollTo({
+    top: target.offsetTop - padding,
+    behavior: 'smooth'
+  })
   target.style.transform = `scale(2)`
 }
 onMounted(() => {
-  handleCurrentShow()
+  handleDataChange()
 })
 </script>
 <template>
