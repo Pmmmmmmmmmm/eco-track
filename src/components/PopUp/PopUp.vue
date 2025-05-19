@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, Teleport, watch } from 'vue'
+import { ref, Teleport, watch, onMounted } from 'vue'
 type Location = 'top' | 'bottom' | 'left' | 'right'
 const {
   location,
@@ -45,6 +45,9 @@ const setLocation = (popState: boolean) => {
 }
 
 watch(visible, setLocation)
+onMounted(() => {
+  setLocation(visible.value)
+})
 </script>
 <template>
   <Teleport to="body">
