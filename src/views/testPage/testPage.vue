@@ -1,37 +1,83 @@
 <script setup lang="ts">
-import { ref, reactive, toRefs, onBeforeMount, onMounted, useTemplateRef, nextTick } from 'vue'
+import {
+  ref,
+  reactive,
+  toRefs,
+  onBeforeMount,
+  onMounted,
+  useTemplateRef,
+  nextTick,
+  watchEffect
+} from 'vue'
+
 onBeforeMount(() => {})
 onMounted(() => {})
 const ItemHeight = 60
 const influenceScope = 90
-const baseFontSize = 30
-const pickFontSize = 60
+const baseFontSize = 20
+const pickFontSize = 70
 let textWidth = 0
 const hourList = [
-  '0740',
+  '00',
   '01',
   '02',
-  '0553',
+  '03',
   '04',
-  '0533-=-',
-  '0776',
+  '05',
+  '06',
   '07',
-  '0阿斯顿8',
+  '08',
   '09',
-  '10方法',
+  '10',
   '11',
   '12',
   '13',
-  '1啊圣诞袜4',
+  '14',
   '15',
-  '1公司法6',
+  '16',
   '17',
-  '1规格化8',
+  '18',
   '19',
   '20',
   '21',
   '22',
-  '23'
+  '23',
+  '24',
+  '25',
+  '26',
+  '27',
+  '28',
+  '29',
+  '30',
+  '31',
+  '32',
+  '33',
+  '34',
+  '35',
+  '36',
+  '37',
+  '38',
+  '39',
+  '40',
+  '41',
+  '42',
+  '43',
+  '44',
+  '45',
+  '46',
+  '47',
+  '48',
+  '49',
+  '50',
+  '51',
+  '52',
+  '53',
+  '54',
+  '55',
+  '56',
+  '57',
+  '58',
+  '59'
 ]
 const canvasRef = useTemplateRef('canvasRef')
 const parentsRef = useTemplateRef('boxRef')
@@ -70,7 +116,8 @@ function initCanvas() {
   ctx.value.textBaseline = 'middle'
   drawText(0)
 }
-
+let posMap = new Map()
+let contentMap = new Map()
 function drawText(scrollTop: number) {
   if (!ctx.value) return null
   hourList.forEach((item, index) => {
@@ -80,19 +127,66 @@ function drawText(scrollTop: number) {
     let newFontSize = baseFontSize + (pickFontSize - baseFontSize) * rate
     // （newFontSize * 0.1）估算文字高度，使文字上下居中
     let newY = index * ItemHeight + padding + ItemHeight / 2 + newFontSize * 0.1
+    if (posMap.size !== hourList.length) {
+      posMap.set(index * ItemHeight, item)
+      contentMap.set(item, index * ItemHeight)
+    }
     ctx.value.font = `${newFontSize}px myFont`
     ctx.value.fillText(item, textWidth / 2, newY, textWidth)
   })
 }
+
+function handleMatchShow(currentPos: number | null, speed: number) {
+  if (!currentPos) return null
+  let matchPos = Math.round(currentPos / ItemHeight) * ItemHeight
+  if (!parentsRef.value) return null
+  parentsRef.value.scrollTo({
+    top: matchPos,
+    behavior: 'smooth'
+  })
+}
+let touchState = ref('end')
+let scrollSpeed = ref(0)
+let lastScrollTop = 0
+function updateScrollSpeed() {
+  // 计算滚动速度
+  const currentScrollTop = parentsRef.value?.scrollTop || 0
+  const deltaScrollTop = Math.abs(currentScrollTop - lastScrollTop)
+  requestAnimationFrame(() => {
+    scrollSpeed.value = deltaScrollTop
+    lastScrollTop = currentScrollTop
+    updateScrollSpeed()
+  })
+}
+
+onMounted(() => {
+  lastScrollTop = parentsRef.value?.scrollTop || 0
+  updateScrollSpeed()
+})
+let lastSpeed = 0
+watchEffect(() => {
+  if (lastSpeed >= scrollSpeed.value && scrollSpeed.value < 0.1 && touchState.value == 'end') {
+    if (parentsRef.value?.scrollTop) handleMatchShow(parentsRef.value?.scrollTop, scrollSpeed.value)
+  }
+  lastSpeed = scrollSpeed.value
+})
 onMounted(() => {
   document.fonts.ready.then(() => {
     initCanvas()
   })
-
   parentsRef.value?.addEventListener('scroll', (e) => {
     if (!parentsRef.value) return null
     ctx.value?.clearRect(0, 0, textWidth, canvasHeight.value)
     drawText(parentsRef.value.scrollTop)
+  })
+  parentsRef.value?.addEventListener('touchstart', () => {
+    touchState.value = 'touching'
+  })
+  parentsRef.value?.addEventListener('touchmove', () => {
+    touchState.value = 'touching'
+  })
+  parentsRef.value?.addEventListener('touchend', () => {
+    touchState.value = 'end'
   })
 })
 </script>
