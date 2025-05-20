@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const { options } = defineProps<{ options: string[] }>()
+const model = defineModel()
 import {
   ref,
   reactive,
@@ -6,154 +8,143 @@ import {
   onBeforeMount,
   onMounted,
   useTemplateRef,
-  watchEffect,
-  watch
+  nextTick,
+  watchEffect
 } from 'vue'
-import { useDomState } from '../../calendar/components/getDomState'
-const { options } = defineProps<{ options: unknown[] }>()
-const model = defineModel()
-// watch(model, (val) => {
-//   handleDataChange()
-//   // console.log('watch', val)
-// })
-let listRef = useTemplateRef('listRef')
-let itemsRef = useTemplateRef('itemsRef')
-let itemPosList: Map<number, HTMLElement> | null = new Map()
-let childHeight = 0
-let padding: number | null = 0
 
-function bindDomDoneAction() {
-  // 绑定操作完成的事件，页面滚动到匹配的元素位置
-  if (!listRef.value) return
-  const { touchState, scrollState } = useDomState(listRef.value, {
-    scrollDoneTime: 100
-  })
-  watchEffect(() => {
-    if (touchState.value == 'end' && scrollState.value == 'end') {
-      handleDoneAction()
+onBeforeMount(() => {})
+onMounted(() => {})
+const ItemHeight = 60
+const influenceScope = 90
+const baseFontSize = 20
+const pickFontSize = 60
+let textWidth = 0
+
+const canvasRef = useTemplateRef('canvasRef')
+const parentsRef = useTemplateRef('boxRef')
+let padding = 0
+let canvasHeight = ref(0)
+function getCanvasHeight() {
+  if (canvasHeight.value) return canvasHeight.value
+  if (!canvasRef.value || !parentsRef.value) return 0
+  padding = (parentsRef.value?.scrollHeight - ItemHeight) / 2
+  let contentHeight = options.length * ItemHeight
+  canvasHeight.value = contentHeight + padding + padding
+  return contentHeight + padding + padding
+}
+const ctx = ref<CanvasRenderingContext2D | null>(null)
+function initCanvas() {
+  if (!canvasRef.value) return null
+  const canvas = canvasRef.value as HTMLCanvasElement
+  ctx.value = canvas.getContext('2d')
+  canvas.height = getCanvasHeight()
+  if (!ctx.value) return null
+  let maxWidth = 0
+  let maxLength = 0
+  options.forEach((text) => {
+    const metrics = ctx.value?.measureText(text)
+    maxWidth = Math.max(maxWidth, metrics?.width || 0)
+    const length = text.length
+    if (length > maxLength) {
+      maxLength = length
     }
   })
+  let dynamicWidth = (pickFontSize - baseFontSize) * maxLength
+  canvas.width = maxWidth + dynamicWidth
+  textWidth = maxWidth + dynamicWidth
+  ctx.value.strokeStyle = 'green'
+  ctx.value.textAlign = 'center'
+  ctx.value.textBaseline = 'middle'
+  drawText(0)
+}
+let posMap = new Map()
+let contentMap = new Map()
+function drawText(scrollTop: number) {
+  if (!ctx.value) return null
+  options.forEach((item, index) => {
+    if (!ctx.value) return null
+    let rate = 1 - Math.abs(index * ItemHeight - scrollTop) / influenceScope
+    if (rate < 0) rate = 0
+    let newFontSize = baseFontSize + (pickFontSize - baseFontSize) * rate
+    // （newFontSize * 0.1）估算文字高度，使文字上下居中
+    let newY = index * ItemHeight + padding + ItemHeight / 2 + newFontSize * 0.1
+    if (posMap.size !== options.length) {
+      posMap.set(index * ItemHeight, item)
+      contentMap.set(item, index * ItemHeight)
+    }
+    ctx.value.font = `${newFontSize}px myFont`
+    ctx.value.fillText(item, textWidth / 2, newY, textWidth)
+  })
 }
 
-function init() {
-  // 动态设置padding值
-  padding = setDynamicPadding()
-  if (!itemsRef.value) return
-  // 初始化itemPosList
-  itemPosList = getTargetPositionList(itemsRef.value, padding)
-  // 绑定滚动事件
-  bindMainScroll()
-  // 绑定操作完成的事件，页面滚动到匹配的元素位置
-  bindDomDoneAction()
-}
-function getTargetPositionList(target: HTMLElement[] | null, padding: number | null) {
-  if (!target || !padding) return null
-  let map = new Map<number, HTMLElement>()
-  target.forEach((item) => {
-    map.set(item.offsetTop - padding, item)
-  })
-  return map
-}
-function setDynamicPadding() {
-  if (!listRef.value) return null
-  childHeight = (listRef.value.children[0].children[0] as HTMLElement).offsetHeight
-  let paddingTarget = listRef.value.children[0] as HTMLElement
-  let scrollListPadding = Math.floor((listRef.value.offsetHeight - childHeight) / 2)
-  paddingTarget.style.padding = `${scrollListPadding}px 0px`
-  return scrollListPadding
-}
-function bindMainScroll() {
-  if (!listRef.value) return
-  listRef.value.addEventListener('scroll', (e) => {
-    handleOnScroll(e)
+function handleMatchShow(currentPos: number | null, speed: number) {
+  if (!currentPos) return null
+  let matchPos = Math.round(currentPos / ItemHeight) * ItemHeight
+  if (!parentsRef.value) return null
+  parentsRef.value.scrollTo({
+    top: matchPos,
+    behavior: 'smooth'
   })
 }
+let touchState = ref('end')
+let scrollSpeed = ref(0)
+let lastScrollTop = 0
+function updateScrollSpeed() {
+  // 计算滚动速度
+  const currentScrollTop = parentsRef.value?.scrollTop || 0
+  const deltaScrollTop = Math.abs(currentScrollTop - lastScrollTop)
+  requestAnimationFrame(() => {
+    scrollSpeed.value = deltaScrollTop
+    lastScrollTop = currentScrollTop
+    updateScrollSpeed()
+  })
+}
+
 onMounted(() => {
-  init()
+  lastScrollTop = parentsRef.value?.scrollTop || 0
+  updateScrollSpeed()
 })
-
-let lastSelectedItem = ref<HTMLElement | null>(null)
-let currentSelectedItemPos = 0
-function handleOnScroll(e: Event) {
-  if (e.target) {
-    let scrollTop = (e.target as HTMLElement).scrollTop
-    let matchPos = Math.round(scrollTop / childHeight) * childHeight
-    let targetItem = itemPosList?.get(matchPos)
-    if (!targetItem || !padding) return
-    let currentRate = (targetItem.offsetTop - padding - scrollTop) / childHeight
-    if (targetItem) targetItem.style.transform = `scale(${2 - 2 * Math.abs(currentRate)})`
-    lastSelectedItem.value = targetItem ? targetItem : null
-    currentSelectedItemPos = matchPos
-    model.value = targetItem.getAttribute('itemValue')
+let lastSpeed = 0
+watchEffect(() => {
+  if (lastSpeed >= scrollSpeed.value && scrollSpeed.value < 0.1 && touchState.value == 'end') {
+    if (parentsRef.value?.scrollTop) handleMatchShow(parentsRef.value?.scrollTop, scrollSpeed.value)
   }
-}
-
-function handleDoneAction() {
-  listRef.value?.scrollTo({
-    top: currentSelectedItemPos,
-    behavior: 'smooth'
-  })
-}
-function handleDataChange() {
-  let target = itemsRef.value?.find((item) => {
-    let targetValue = item.getAttribute('itemValue')
-    return model.value === targetValue
-  })
-  if (!target || !padding) return
-  currentSelectedItemPos = target.offsetTop - padding
-  listRef.value?.scrollTo({
-    top: target.offsetTop - padding,
-    behavior: 'smooth'
-  })
-  target.style.transform = `scale(2)`
-}
+  lastSpeed = scrollSpeed.value
+})
 onMounted(() => {
-  handleDataChange()
+  document.fonts.ready.then(() => {
+    initCanvas()
+  })
+  parentsRef.value?.addEventListener('scroll', (e) => {
+    if (!parentsRef.value) return null
+    ctx.value?.clearRect(0, 0, textWidth, canvasHeight.value)
+    drawText(parentsRef.value.scrollTop)
+  })
+  parentsRef.value?.addEventListener('touchstart', () => {
+    touchState.value = 'touching'
+  })
+  parentsRef.value?.addEventListener('touchmove', () => {
+    touchState.value = 'touching'
+  })
+  parentsRef.value?.addEventListener('touchend', () => {
+    touchState.value = 'end'
+  })
 })
 </script>
 <template>
-  <div ref="listRef" class="list">
-    <div>
-      <div
-        class="scroll-item"
-        ref="itemsRef"
-        v-for="(item, index) in options"
-        :itemValue="item"
-        :key="index"
-      >
-        {{ item }}
-      </div>
-    </div>
+  <div class="test-box" ref="boxRef">
+    <canvas ref="canvasRef" class="canvas"></canvas>
   </div>
 </template>
 <style lang="less" scoped>
-.list {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.test-box {
+  // width: 100%;
   height: 100%;
   overflow-y: scroll;
-  position: relative;
   &::-webkit-scrollbar {
     display: none;
   }
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
-
-  .scroll-item {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #004830;
-    height: 50px;
-    line-height: 50px;
-    flex-shrink: 0;
-    padding: 0 30px;
-    transform: scale(1);
-  }
-  // .active {
-  //   transform: scale(1.6);
-  //   color: #0970c9;
-  // }
 }
 </style>
