@@ -21,7 +21,7 @@ const pickFontSize = 60
 let textWidth = 0
 
 const canvasRef = useTemplateRef('canvasRef')
-const parentsRef = useTemplateRef('boxRef')
+const parentsRef = useTemplateRef('parentsRef')
 let padding = 0
 let canvasHeight = ref(0)
 function getCanvasHeight() {
@@ -32,13 +32,7 @@ function getCanvasHeight() {
   canvasHeight.value = contentHeight + padding + padding
   return contentHeight + padding + padding
 }
-const ctx = ref<CanvasRenderingContext2D | null>(null)
-function initCanvas() {
-  if (!canvasRef.value) return null
-  const canvas = canvasRef.value as HTMLCanvasElement
-  ctx.value = canvas.getContext('2d')
-  canvas.height = getCanvasHeight()
-  if (!ctx.value) return null
+function getCanvasWidth() {
   let maxWidth = 0
   let maxLength = 0
   options.forEach((text) => {
@@ -50,9 +44,17 @@ function initCanvas() {
     }
   })
   let dynamicWidth = (pickFontSize - baseFontSize) * maxLength
-  canvas.width = maxWidth + dynamicWidth
-  textWidth = maxWidth + dynamicWidth
-  ctx.value.strokeStyle = 'green'
+  return (maxWidth + dynamicWidth) * 0.6
+}
+const ctx = ref<CanvasRenderingContext2D | null>(null)
+function initCanvas() {
+  if (!canvasRef.value) return null
+  const canvas = canvasRef.value as HTMLCanvasElement
+  ctx.value = canvas.getContext('2d')
+  canvas.height = getCanvasHeight()
+  if (!ctx.value) return null
+  canvas.width = getCanvasWidth()
+  textWidth = canvas.width
   ctx.value.textAlign = 'center'
   ctx.value.textBaseline = 'middle'
   drawText(0)
@@ -132,13 +134,12 @@ onMounted(() => {
 })
 </script>
 <template>
-  <div class="test-box" ref="boxRef">
+  <div class="scroll-list" ref="parentsRef">
     <canvas ref="canvasRef" class="canvas"></canvas>
   </div>
 </template>
 <style lang="less" scoped>
-.test-box {
-  // width: 100%;
+.scroll-list {
   height: 100%;
   overflow-y: scroll;
   &::-webkit-scrollbar {
@@ -146,5 +147,10 @@ onMounted(() => {
   }
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
+  position: relative;
+  .canvas {
+    display: block;
+    margin: 0 auto;
+  }
 }
 </style>

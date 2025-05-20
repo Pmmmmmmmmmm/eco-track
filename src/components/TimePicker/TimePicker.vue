@@ -221,14 +221,6 @@ function handleSetTimeNow() {
     align-items: center;
     font-size: 30px;
     position: relative;
-    .line {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 100%;
-      height: 1px;
-      background-color: rgb(0, 72, 48);
-    }
   }
 }
 </style>
