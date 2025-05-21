@@ -1,6 +1,4 @@
 <script setup lang="ts">
-const { options } = defineProps<{ options: string[] }>()
-const model = defineModel()
 import {
   ref,
   reactive,
@@ -9,30 +7,45 @@ import {
   onMounted,
   useTemplateRef,
   nextTick,
-  watchEffect
+  watchEffect,
+  watch
 } from 'vue'
 
+const { options } = defineProps<{ options: string[] }>()
+const model = defineModel()
+// watch(model, (newValue) => {
+//   if (!newValue) return null
+//   if (!contentMap.has(newValue)) return null
+//   let matchPos = contentMap.get(newValue)
+//   if (!parentsRef.value) return null
+//   if (matchPos === currentMatchPos) return null
+//   parentsRef.value.scrollTo({
+//     top: matchPos,
+//     behavior: 'smooth'
+//   })
+// })
 onBeforeMount(() => {})
 onMounted(() => {})
 const ItemHeight = 60
 const influenceScope = 90
 const baseFontSize = 20
 const pickFontSize = 60
-let textWidth = 0
 
 const canvasRef = useTemplateRef('canvasRef')
 const parentsRef = useTemplateRef('parentsRef')
 let padding = 0
-let canvasHeight = ref(0)
+let canvasHeight = 0
+let canvasWidth = 0
 function getCanvasHeight() {
-  if (canvasHeight.value) return canvasHeight.value
+  if (canvasHeight) return canvasHeight
   if (!canvasRef.value || !parentsRef.value) return 0
   padding = (parentsRef.value?.scrollHeight - ItemHeight) / 2
   let contentHeight = options.length * ItemHeight
-  canvasHeight.value = contentHeight + padding + padding
+  canvasHeight = contentHeight + padding + padding
   return contentHeight + padding + padding
 }
 function getCanvasWidth() {
+  if (canvasWidth) return canvasWidth
   let maxWidth = 0
   let maxLength = 0
   options.forEach((text) => {
@@ -44,6 +57,7 @@ function getCanvasWidth() {
     }
   })
   let dynamicWidth = (pickFontSize - baseFontSize) * maxLength
+  canvasWidth = maxWidth + dynamicWidth * 0.6
   return (maxWidth + dynamicWidth) * 0.6
 }
 const ctx = ref<CanvasRenderingContext2D | null>(null)
@@ -52,9 +66,8 @@ function initCanvas() {
   const canvas = canvasRef.value as HTMLCanvasElement
   ctx.value = canvas.getContext('2d')
   canvas.height = getCanvasHeight()
-  if (!ctx.value) return null
   canvas.width = getCanvasWidth()
-  textWidth = canvas.width
+  if (!ctx.value) return null
   ctx.value.textAlign = 'center'
   ctx.value.textBaseline = 'middle'
   drawText(0)
@@ -75,53 +88,13 @@ function drawText(scrollTop: number) {
       contentMap.set(item, index * ItemHeight)
     }
     ctx.value.font = `${newFontSize}px myFont`
-    ctx.value.fillText(item, textWidth / 2, newY, textWidth)
+    if (!canvasRef.value) return null
+    ctx.value.fillText(item, canvasRef.value.width / 2, newY, canvasRef.value.width)
   })
 }
-
-function handleMatchShow(currentPos: number | null, speed: number) {
-  if (!currentPos) return null
-  let matchPos = Math.round(currentPos / ItemHeight) * ItemHeight
-  if (!parentsRef.value) return null
-  parentsRef.value.scrollTo({
-    top: matchPos,
-    behavior: 'smooth'
-  })
-}
+let currentMatchPos = 0
 let touchState = ref('end')
-let scrollSpeed = ref(0)
-let lastScrollTop = 0
-function updateScrollSpeed() {
-  // 计算滚动速度
-  const currentScrollTop = parentsRef.value?.scrollTop || 0
-  const deltaScrollTop = Math.abs(currentScrollTop - lastScrollTop)
-  requestAnimationFrame(() => {
-    scrollSpeed.value = deltaScrollTop
-    lastScrollTop = currentScrollTop
-    updateScrollSpeed()
-  })
-}
-
-onMounted(() => {
-  lastScrollTop = parentsRef.value?.scrollTop || 0
-  updateScrollSpeed()
-})
-let lastSpeed = 0
-watchEffect(() => {
-  if (lastSpeed >= scrollSpeed.value && scrollSpeed.value < 0.1 && touchState.value == 'end') {
-    if (parentsRef.value?.scrollTop) handleMatchShow(parentsRef.value?.scrollTop, scrollSpeed.value)
-  }
-  lastSpeed = scrollSpeed.value
-})
-onMounted(() => {
-  document.fonts.ready.then(() => {
-    initCanvas()
-  })
-  parentsRef.value?.addEventListener('scroll', (e) => {
-    if (!parentsRef.value) return null
-    ctx.value?.clearRect(0, 0, textWidth, canvasHeight.value)
-    drawText(parentsRef.value.scrollTop)
-  })
+function bindTouchEvent() {
   parentsRef.value?.addEventListener('touchstart', () => {
     touchState.value = 'touching'
   })
@@ -131,7 +104,66 @@ onMounted(() => {
   parentsRef.value?.addEventListener('touchend', () => {
     touchState.value = 'end'
   })
+}
+import { useScrollSpeed } from './getScrollSpeed'
+const { scrollSpeed, speedStatus } = useScrollSpeed(parentsRef)
+
+let isOnDoneAction = false
+watch([touchState, scrollSpeed], (val) => {
+  if (
+    (touchState.value == 'end' &&
+      scrollSpeed.value <= 0.5 &&
+      !isOnDoneAction &&
+      '减速' === speedStatus.value) ||
+    (touchState.value == 'end' && speedStatus.value === '停止' && !isOnDoneAction)
+  ) {
+    if (!parentsRef.value || !parentsRef.value.scrollTop) return null
+
+    handleViewChangeByPos(parentsRef.value.scrollTop)
+  }
 })
+
+onMounted(() => {
+  document.fonts.ready.then(() => {
+    initCanvas()
+  })
+  parentsRef.value?.addEventListener('scroll', (e) => {
+    if (!parentsRef.value) return null
+    ctx.value?.clearRect(0, 0, canvasWidth, canvasHeight)
+    drawText(parentsRef.value.scrollTop)
+  })
+  bindTouchEvent()
+})
+function handleScroll(target: HTMLElement, top: number) {
+  isOnDoneAction = true
+  function update() {
+    const currentTop = target.scrollTop
+    const delta = top - currentTop
+    const speed = delta / 10 // 调整速度
+    target.scrollTop += speed
+    if (Math.abs(delta) > 4) {
+      requestAnimationFrame(update)
+    } else {
+      isOnDoneAction = false
+      target.scrollTop = top
+    }
+  }
+  update()
+}
+// 通过位置滚动到指定位置
+function handleViewChangeByPos(pos: number) {
+  if (!parentsRef.value) return null
+  let matchPos = Math.round(pos / ItemHeight) * ItemHeight
+  if (matchPos === currentMatchPos) return null
+  handleScroll(parentsRef.value, matchPos)
+}
+// 通过值滚动到指定位置
+function handleViewChangeByValue(value: string) {
+  let matchPos = contentMap.get(value)
+  if (!parentsRef.value) return null
+  if (matchPos === currentMatchPos) return null
+  handleScroll(parentsRef.value, matchPos)
+}
 </script>
 <template>
   <div class="scroll-list" ref="parentsRef">
