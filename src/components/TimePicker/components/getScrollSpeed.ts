@@ -5,6 +5,8 @@ export const useScrollSpeed = (target: ShallowRef<HTMLElement | null>) => {
   const scrollSpeed = ref(0)
 
   let lastScrollTop = 0
+  const speedStatus = ref<'加速' | '减速' | '匀速' | '停止'>('停止')
+  let lastSpeed = 0
   /**
    * 更新滚动速度的函数。通过比较当前滚动位置和上一次滚动位置，
    * 计算滚动速度，并使用 requestAnimationFrame 递归调用自身，实现持续更新。
@@ -19,6 +21,19 @@ export const useScrollSpeed = (target: ShallowRef<HTMLElement | null>) => {
     requestAnimationFrame(() => {
       // 将计算得到的滚动速度赋值给响应式变量 scrollSpeed
       scrollSpeed.value = deltaScrollTop
+
+      if (deltaScrollTop > lastSpeed) {
+        speedStatus.value = '加速'
+      } else if (deltaScrollTop < lastSpeed) {
+        speedStatus.value = '减速'
+      } else {
+        speedStatus.value = '匀速'
+      }
+      if (deltaScrollTop === 0) {
+        speedStatus.value = '停止'
+      }
+
+      lastSpeed = deltaScrollTop
       // 更新上一次滚动位置为当前滚动位置，为下一次计算做准备
       lastScrollTop = currentScrollTop
       // 递归调用 updateScrollSpeed 函数，持续更新滚动速度
@@ -34,6 +49,7 @@ export const useScrollSpeed = (target: ShallowRef<HTMLElement | null>) => {
   })
 
   return {
-    scrollSpeed
+    scrollSpeed,
+    speedStatus
   }
 }
